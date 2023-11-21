@@ -335,7 +335,7 @@ int main(void)
 
         float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressValue;
         float angle = fmod(currentTime * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
-        std::cout << angle << "\n";
+
         //Crtanje okvira
         for (int i = 0; i < 4; i++)
         {
@@ -369,7 +369,6 @@ int main(void)
         glDrawArrays(GL_TRIANGLE_FAN, 0, CRES + 2);
 
         //Crtanje progress bar-a
-        //std::cout << progressValue << "\n";
         glUseProgram(progressShader);
         glUniform1f(uProgressValueLoc, progressValue);
         glBindVertexArray(VAO[2]);
