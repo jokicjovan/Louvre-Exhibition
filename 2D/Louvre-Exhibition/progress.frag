@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec2 progressCoord;
+in vec2 progressCoord;        // standardizovane koordinate progressa
 out vec4 outColor;
 
 uniform float progressValue;  // Vrednost izmedju 0.0 i 1.0

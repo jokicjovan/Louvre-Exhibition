@@ -177,8 +177,8 @@ int main(void)
         // X       Y
            -0.9f,  0.7f, // Gore-Levo
            -0.9f,  0.8f, // Gore-Desno
-           -0.1f,  0.7f, // Dole-Levo
-           -0.1f,  0.8f  // Dole-Desno
+           0.1f,  0.7f, // Dole-Levo
+           0.1f,  0.8f  // Dole-Desno
     };
 
     float progressBarStride = 2 * sizeof(float);
