@@ -175,10 +175,10 @@ int main(void)
 
     float progressBarVertices[] = {
         // X       Y
-       -0.9f,  0.7f, // Gore-Levo
-       -0.9f,  0.8f, // Gore-Desno
-       -0.1f,  0.7f, // Dole-Levo
-       -0.1f,  0.8f  // Dole-Desno
+           -0.9f,  0.7f, // Gore-Levo
+           -0.9f,  0.8f, // Gore-Desno
+           -0.1f,  0.7f, // Dole-Levo
+           -0.1f,  0.8f  // Dole-Desno
     };
 
     float progressBarStride = 2 * sizeof(float);
@@ -200,9 +200,9 @@ int main(void)
 
     float signatureVertices[] = {
         // X       Y       S    T
-           0.5f,  -0.6f,   0.0, 1.0,  // Gore-Levo
+           0.45f,  -0.6f,   0.0, 1.0,  // Gore-Levo
            0.9f,  -0.6f,   1.0, 1.0,  // Gore-Desno
-           0.5f,  -0.9f,   0.0, 0.0,  // Dole-Levo
+           0.45f,  -0.9f,   0.0, 0.0,  // Dole-Levo
            0.9f,  -0.9f,   1.0, 0.0   // Dole-Desno
     };
 
@@ -335,7 +335,7 @@ int main(void)
 
         float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressValue;
         float angle = fmod(currentTime * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
-
+        std::cout << angle << "\n";
         //Crtanje okvira
         for (int i = 0; i < 4; i++)
         {
