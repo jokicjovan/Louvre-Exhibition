@@ -145,8 +145,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="button.frag" />
-    <None Include="button.vert" />
+    <None Include="basicColor.frag" />
+    <None Include="basicColor.vert" />
     <None Include="frame.frag" />
     <None Include="frame.vert" />
     <None Include="picture.frag" />
@@ -154,10 +154,12 @@
     <None Include="packages.config" />
     <None Include="progress.frag" />
     <None Include="progress.vert" />
-    <None Include="signature.frag" />
-    <None Include="signature.vert" />
+    <None Include="basicTexture.frag" />
+    <None Include="basicTexture.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

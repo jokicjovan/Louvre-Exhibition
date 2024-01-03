@@ -13,10 +13,29 @@
 //Potrebno je definisati STB_IMAGE_IMPLEMENTATION prije njenog ukljucivanja
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "camera.h"
+#include "shader.h"
 
-unsigned int compileShader(GLenum type, const char* source); //Uzima kod u fajlu na putanji "source", kompajlira ga i vraca sejder tipa "type"
-unsigned int createShader(const char* vsSource, const char* fsSource); //Pravi objedinjeni sejder program koji se sastoji od Vertex sejdera ciji je kod na putanji vsSource i Fragment sejdera na putanji fsSource
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processCommonInput(GLFWwindow* window);
+
 static unsigned loadImageToTexture(const char* filePath);
+
+// settings
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 700;
+
+// camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 int main(void)
 {
@@ -38,10 +57,8 @@ int main(void)
 
     //Stvaranje prozora
     GLFWwindow* window; //Mjesto u memoriji za prozor
-    unsigned int wWidth = 1920;
-    unsigned int wHeight = 700;
-    const char wTitle[] = "Louvre Exhibition";
-    window = glfwCreateWindow(wWidth, wHeight, wTitle, NULL, NULL); // Napravi novi prozor
+    const char wTitle[] = "Louvre Exhibition 3D";
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, wTitle, NULL, NULL); // Napravi novi prozor
     // glfwCreateWindow( sirina, visina, naslov, monitor na koji ovaj prozor ide preko citavog ekrana (u tom slucaju umjesto NULL ide glfwGetPrimaryMonitor() ), i prozori sa kojima ce dijeliti resurse )
     if (window == NULL) //Ako prozor nije napravljen
     {
@@ -51,6 +68,9 @@ int main(void)
     }
     // Postavljanje novopecenog prozora kao aktivni (sa kojim cemo da radimo)
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     // Inicijalizacija GLEW biblioteke
     if (glewInit() != GLEW_OK) //Slicno kao glfwInit. GLEW_OK je predefinisani kod za uspjesnu inicijalizaciju sadrzan unutar biblioteke
@@ -60,94 +80,141 @@ int main(void)
     }
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROMJENLJIVE I BAFERI +++++++++++++++++++++++++++++++++++++++++++++++++
-    unsigned int frameShader = createShader("frame.vert", "frame.frag");
-    unsigned int pictureShader = createShader("picture.vert", "picture.frag");
-    unsigned int buttonShader = createShader("button.vert", "button.frag");
-    unsigned int progressShader = createShader("progress.vert", "progress.frag");
-    unsigned int signatureShader = createShader("signature.vert", "signature.frag");
+    Shader frameShader("frame.vert", "frame.frag");
+    Shader pictureShader("picture.vert", "picture.frag");
+    Shader progressShader("progress.vert", "progress.frag");
+    Shader basicColorShader("basicColor.vert", "basicColor.frag");
+    Shader basicTextureShader("basicTexture.vert", "basicTexture.frag");
 
-    unsigned int VAO[4];
-    glGenVertexArrays(4, VAO);
-    unsigned int VBO[4];
-    glGenBuffers(4, VBO);
+    unsigned int VAO[5];
+    glGenVertexArrays(5, VAO);
+    unsigned int VBO[5];
+    glGenBuffers(5, VBO);
 
-    // ------------------------------- SLIKE SA OKVIRIMA -------------------------------
+    // ------------------------------- SOBA -------------------------------
+    float roomVertices[] = {
+        //X      Y       Z      NX     NY     NZ
+        //BACK
+        -1.0f,  -1.0f,  -1.0f,  0.0f,  0.0f, -1.0f,
+         1.0f,  -1.0f,  -1.0f,  0.0f,  0.0f, -1.0f,
+         1.0f,   1.0f,  -1.0f,  0.0f,  0.0f, -1.0f,
+         1.0f,   1.0f,  -1.0f,  0.0f,  0.0f, -1.0f,
+        -1.0f,   1.0f,  -1.0f,  0.0f,  0.0f, -1.0f,
+        -1.0f,  -1.0f,  -1.0f,  0.0f,  0.0f, -1.0f,
 
-    float aspectRatios[] = { 800.0 / 1192.0, 1280.0 / 874.0, 1280.0 / 1027.0, 1920.0 / 1207.0 };
+        //FRONT
+        -1.0f,  -1.0f,   1.0f,  0.0f,  0.0f,  1.0f,
+         1.0f,  -1.0f,   1.0f,  0.0f,  0.0f,  1.0f,
+         1.0f,   1.0f,   1.0f,  0.0f,  0.0f,  1.0f,
+         1.0f,   1.0f,   1.0f,  0.0f,  0.0f,  1.0f,
+        -1.0f,   1.0f,   1.0f,  0.0f,  0.0f,  1.0f,
+        -1.0f,  -1.0f,   1.0f,  0.0f,  0.0f,  1.0f,
+
+        //LEFT
+        -1.0f,   1.0f,   1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f,   1.0f,  -1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f, - 1.0f,  -1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f, - 1.0f,  -1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f, - 1.0f,   1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f,   1.0f,   1.0f, -1.0f,  0.0f,  0.0f,
+
+        //RIGHT
+         1.0f,   1.0f,   1.0f,  1.0f,  0.0f,  0.0f,
+         1.0f,   1.0f,  -1.0f,  1.0f,  0.0f,  0.0f,
+         1.0f,  -1.0f,  -1.0f,  1.0f,  0.0f,  0.0f,
+         1.0f,  -1.0f,  -1.0f,  1.0f,  0.0f,  0.0f,
+         1.0f,  -1.0f,   1.0f,  1.0f,  0.0f,  0.0f,
+         1.0f,   1.0f,   1.0f,  1.0f,  0.0f,  0.0f,
+
+        //BOTTOM
+        -1.0f,  -1.0f,  -1.0f,  0.0f, -1.0f,  0.0f,
+         1.0f,  -1.0f,  -1.0f,  0.0f, -1.0f,  0.0f,
+         1.0f,  -1.0f,   1.0f,  0.0f, -1.0f,  0.0f,
+         1.0f,  -1.0f,   1.0f,  0.0f, -1.0f,  0.0f,
+        -1.0f,  -1.0f,   1.0f,  0.0f, -1.0f,  0.0f,
+        -1.0f,  -1.0f,  -1.0f,  0.0f, -1.0f,  0.0f,
+
+        //TOP
+        -1.0f,   1.0f,  -1.0f,  0.0f,  1.0f,  0.0f,
+         1.0f,   1.0f,  -1.0f,  0.0f,  1.0f,  0.0f,
+         1.0f,   1.0f,   1.0f,  0.0f,  1.0f,  0.0f,
+         1.0f,   1.0f,   1.0f,  0.0f,  1.0f,  0.0f,
+        -1.0f,   1.0f,   1.0f,  0.0f,  1.0f,  0.0f,
+        -1.0f,   1.0f,  -1.0f,  0.0f,  1.0f,  0.0f
+    };
+
+    // ------------------------------- SLIKE SA OKVIRIMA NA GLAVNOM ZIDU -------------------------------
     float pictureHeight = 0.8f;
     float pictureOffset = 0.1f;
 
-    float totalPicturesWidth = 0.0f;
+    float mainWallPicturesAspectRatios[] = { 800.0 / 1192.0, 1280.0 / 874.0, 1280.0 / 1027.0, 1920.0 / 1207.0 };
+    float mainWallPicturesTotalWidth = 0.0f;
     for (int i = 0; i < 4; i++) {
-        totalPicturesWidth += (pictureHeight * aspectRatios[i]);
+        mainWallPicturesTotalWidth += (pictureHeight * mainWallPicturesAspectRatios[i]);
     }
-    float scale = (totalPicturesWidth + 5 * pictureOffset > 2.0f) ? (2.0f - 5 * pictureOffset) / totalPicturesWidth : 1.0f;     // kreiranje "skalera" za slike 
-                                                                                                                                //(uzima u obzir sirinu slika i offset-e izmedju njih)
-    float picturesWidths[4];
+    float mainWallPicturesScaler = (mainWallPicturesTotalWidth + 5 * pictureOffset > 2.0f) ? 
+        (2.0f - 5 * pictureOffset) / mainWallPicturesTotalWidth : 1.0f;     // kreiranje "skalera" za slike 
+                                                                            //(uzima u obzir sirinu slika i offset-e izmedju njih)
+    float mainWallPicturesWidths[4];
     for (int i = 0; i < 4; i++) {
-        picturesWidths[i] = pictureHeight * aspectRatios[i] * scale;
+        mainWallPicturesWidths[i] = pictureHeight * mainWallPicturesAspectRatios[i] * mainWallPicturesScaler;
     }
 
     float picturesWithFramesVertices[] = {
-        //X                                                                                                         Y                     S    T      OKVIR    R    G    B    A
-        // Mona Lisa sa okvirom
-        -1.0f + pictureOffset                                                                                     , pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Levo
-        -1.0f + pictureOffset + picturesWidths[0]                                                                 , pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Desno
-        -1.0f + pictureOffset                                                                                     ,-pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Levo
-        -1.0f + pictureOffset + picturesWidths[0]                                                                 ,-pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Desno
-                                                                                                                                              
-        // The Raft of the Medusa sa okvirom                                                                                                                           
-        -1.0f + 2 * pictureOffset + picturesWidths[0]                                                             , pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
-        -1.0f + 2 * pictureOffset + picturesWidths[0] + picturesWidths[1]                                         , pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
-        -1.0f + 2 * pictureOffset + picturesWidths[0]                                                             ,-pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
-        -1.0f + 2 * pictureOffset + picturesWidths[0] + picturesWidths[1]                                         ,-pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
-                                                                                                                                              
-        // Liberty Leading the People sa okvirom                                                                                                
-        -1.0f + 3 * pictureOffset + picturesWidths[0] + picturesWidths[1]                                         , pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
-        -1.0f + 3 * pictureOffset + picturesWidths[0] + picturesWidths[1] + picturesWidths[2]                     , pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
-        -1.0f + 3 * pictureOffset + picturesWidths[0] + picturesWidths[1]                                         ,-pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
-        -1.0f + 3 * pictureOffset + picturesWidths[0] + picturesWidths[1] + picturesWidths[2]                     ,-pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
-                                                                                                                                              
-        // The Coronation of Napoleon sa okvirom                                                                                                                     
-        -1.0f + 4 * pictureOffset + picturesWidths[0] + picturesWidths[1] + picturesWidths[2]                     , pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
-        -1.0f + 4 * pictureOffset + picturesWidths[0] + picturesWidths[1] + picturesWidths[2] + picturesWidths[3] , pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
-        -1.0f + 4 * pictureOffset + picturesWidths[0] + picturesWidths[1] + picturesWidths[2]                     ,-pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
-        -1.0f + 4 * pictureOffset + picturesWidths[0] + picturesWidths[1] + picturesWidths[2] + picturesWidths[3] ,-pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
+        //X                                                                                                                                          Y                     S    T      OKVIR    R    G    B    A
+        // Mona Lisa sa okvirom                                                                                                                   
+        -1.0f + pictureOffset                                                                                                                     ,  pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Levo
+        -1.0f + pictureOffset + mainWallPicturesWidths[0]                                                                                         ,  pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Desno
+        -1.0f + pictureOffset                                                                                                                     , -pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Levo
+        -1.0f + pictureOffset + mainWallPicturesWidths[0]                                                                                         , -pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Desno
+                                                                                                                                                                               
+        // The Raft of the Medusa sa okvirom                                                                                                                                                            
+        -1.0f + 2 * pictureOffset + mainWallPicturesWidths[0]                                                                                     ,  pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
+        -1.0f + 2 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1]                                                         ,  pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
+        -1.0f + 2 * pictureOffset + mainWallPicturesWidths[0]                                                                                     , -pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
+        -1.0f + 2 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1]                                                         , -pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
+                                                                                                                                                                               
+        // Liberty Leading the People sa okvirom                                                                                                                                 
+        -1.0f + 3 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1]                                                         ,  pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
+        -1.0f + 3 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1] + mainWallPicturesWidths[2]                             ,  pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
+        -1.0f + 3 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1]                                                         , -pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
+        -1.0f + 3 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1] + mainWallPicturesWidths[2]                             , -pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
+                                                                                                                                                    
+        // The Coronation of Napoleon sa okvirom                                                                                                                      
+        -1.0f + 4 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1] + mainWallPicturesWidths[2]                             ,  pictureHeight / 2 ,   0.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
+        -1.0f + 4 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1] + mainWallPicturesWidths[2] + mainWallPicturesWidths[3] ,  pictureHeight / 2 ,   1.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
+        -1.0f + 4 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1] + mainWallPicturesWidths[2]                             , -pictureHeight / 2 ,   0.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
+        -1.0f + 4 * pictureOffset + mainWallPicturesWidths[0] + mainWallPicturesWidths[1] + mainWallPicturesWidths[2] + mainWallPicturesWidths[3] , -pictureHeight / 2 ,   1.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
     };
 
-    unsigned int picturesStride = (2 + 2 + 1 + 4) * sizeof(float);
+    unsigned int mainWallPicturesStride = (2 + 2 + 1 + 4) * sizeof(float);
 
     //Podesavanje
-    glBindVertexArray(VAO[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+    glBindVertexArray(VAO[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(picturesWithFramesVertices), picturesWithFramesVertices, GL_STATIC_DRAW);
 
     // Atributi za tacke
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, picturesStride, (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, mainWallPicturesStride, (void*)0);
     glEnableVertexAttribArray(0);
 
     // Atributi za teksture
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, picturesStride, (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, mainWallPicturesStride, (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     // Debljina okvira
-    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, picturesStride, (void*)(4 * sizeof(float)));
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, mainWallPicturesStride, (void*)(4 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
     // Atributi boja (RGBA)
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, picturesStride, (void*)(5 * sizeof(float)));
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mainWallPicturesStride, (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(3);
-
-    // Postavili smo sta treba, pa te stvari iskljucujemo, da se naknadna podesavanja ne bi odnosila na njih i nesto poremetila
-    // To radimo tako sto bindujemo 0, pa kada treba da nacrtamo nase stvari, samo ih ponovo bindujemo
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 
     // ------------------------------- DUGME -------------------------------
 
     float buttonVertices[CRES * 2 + 4];
     float r = 0.15;
-    float buttonAspectRatio = (float)wHeight / (float)wWidth;
+    float buttonAspectRatio = (float)SCR_HEIGHT / (float)SCR_WIDTH;
     buttonVertices[0] = 0.7;
     buttonVertices[1] = 0.75;
     for (int i = 0; i <= CRES; i++)
@@ -159,17 +226,13 @@ int main(void)
     float buttonStride = 2 * sizeof(float);
 
     //Podesavanje
-    glBindVertexArray(VAO[1]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+    glBindVertexArray(VAO[2]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(buttonVertices), buttonVertices, GL_STATIC_DRAW);
 
     // Atributi za tacke
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, buttonStride, (void*)0);
     glEnableVertexAttribArray(0);
-
-    //Ciscenje
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 
     // ------------------------------- PROGRESS BAR -------------------------------
 
@@ -184,17 +247,13 @@ int main(void)
     float progressBarStride = 2 * sizeof(float);
 
     //Podesavanje
-    glBindVertexArray(VAO[2]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+    glBindVertexArray(VAO[3]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[3]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(progressBarVertices), progressBarVertices, GL_STATIC_DRAW);
 
     // Atributi za tacke
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, progressBarStride, (void*)0);
     glEnableVertexAttribArray(0);
-
-    // Ciscenje
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 
     // ------------------------------- POTPIS -------------------------------
 
@@ -208,8 +267,8 @@ int main(void)
 
     float signatureStride = (2 + 2) * sizeof(float);
 
-    glBindVertexArray(VAO[3]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[3]);
+    glBindVertexArray(VAO[4]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[4]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(signatureVertices), signatureVertices, GL_STATIC_DRAW);
 
     // Atributi za tacke
@@ -219,57 +278,55 @@ int main(void)
     // Atributi za teksture
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, signatureStride, (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-    // Ciscenje
+    
+    // CISCENJE
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // TEKSTURE
+    // ------------------------------- TEKSTURE -------------------------------
 
-    unsigned picturesTextures[4];
-    unsigned signatureTexture;
+    // GLAVNI ZID
+    unsigned mainWallPicturesTextures[4];
 
     //Mona Lisa
-    picturesTextures[0] = loadImageToTexture("res/Mona_Lisa.png");
-    glBindTexture(GL_TEXTURE_2D, picturesTextures[0]);
+    mainWallPicturesTextures[0] = loadImageToTexture("res/Mona_Lisa.png");
+    glBindTexture(GL_TEXTURE_2D, mainWallPicturesTextures[0]);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     //The Raft of the Medusa
-    picturesTextures[1] = loadImageToTexture("res/The_Raft_of_the_Medusa.png");
-    glBindTexture(GL_TEXTURE_2D, picturesTextures[1]);
+    mainWallPicturesTextures[1] = loadImageToTexture("res/The_Raft_of_the_Medusa.png");
+    glBindTexture(GL_TEXTURE_2D, mainWallPicturesTextures[1]);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     //Liberty Leading the People
-    picturesTextures[2] = loadImageToTexture("res/Liberty_Leading_the_People.png");
-    glBindTexture(GL_TEXTURE_2D, picturesTextures[2]);
+    mainWallPicturesTextures[2] = loadImageToTexture("res/Liberty_Leading_the_People.png");
+    glBindTexture(GL_TEXTURE_2D, mainWallPicturesTextures[2]);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     //The Coronation of Napoleon
-    picturesTextures[3] = loadImageToTexture("res/The_Coronation_of_Napoleon.png");
-    glBindTexture(GL_TEXTURE_2D, picturesTextures[3]);
+    mainWallPicturesTextures[3] = loadImageToTexture("res/The_Coronation_of_Napoleon.png");
+    glBindTexture(GL_TEXTURE_2D, mainWallPicturesTextures[3]);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
 
-    //Potpis
+
+    // POTPIS
+    unsigned signatureTexture;
     signatureTexture = loadImageToTexture("res/Signature.png");
     glBindTexture(GL_TEXTURE_2D, signatureTexture);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -277,21 +334,12 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+
+    // CISCENJE
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ RENDER LOOP - PETLJA ZA CRTANJE +++++++++++++++++++++++++++++++++++++++++++++++++
-    // Uniforms locations
-    unsigned uTimeLoc = glGetUniformLocation(frameShader, "time");
-    unsigned uFrameCircularPositionLoc = glGetUniformLocation(frameShader, "circularPosition");
-
-    unsigned uPictureTexLoc = glGetUniformLocation(pictureShader, "uTex");
-    unsigned uPictureCircularPositionLoc = glGetUniformLocation(pictureShader, "circularPosition");
-
-    unsigned uButtonColorLoc = glGetUniformLocation(buttonShader, "buttonColor");
-
-    unsigned uProgressValueLoc = glGetUniformLocation(progressShader, "progressValue");
-
-    unsigned uSignatureTexLoc = glGetUniformLocation(signatureShader, "uTex");
 
     // Button
     bool buttonClicked = false;
@@ -305,47 +353,46 @@ int main(void)
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     while (!glfwWindowShouldClose(window))
     {
-        float currentTime = glfwGetTime();
-        glClear(GL_COLOR_BUFFER_BIT);
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {
-            glfwSetWindowShouldClose(window, GL_TRUE);
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        processCommonInput(window);
+        if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
         {
             buttonClicked = true;
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         }
-        if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
         {
             buttonClicked = false;
             glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         }        
-        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         {
             progressValue += progressStep;
             progressValue = progressValue > 1.0f ? 1.0f : progressValue;
         }
-        if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         {
             progressValue -= progressStep;
             progressValue = progressValue < 0.0f ? 0.0f : progressValue;
         }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressValue;
-        float angle = fmod(currentTime * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
+        float angle = fmod(currentFrame * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
 
         //Crtanje okvira
         for (int i = 0; i < 4; i++)
         {
             glPolygonMode(GL_FRONT_AND_BACK, buttonClicked ? GL_LINE : GL_FILL);
-            glUseProgram(frameShader);
+            frameShader.use();
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, picturesTextures[i]);
-            glUniform1f(uTimeLoc, currentTime);
-            glUniform2f(uFrameCircularPositionLoc, buttonClicked ? 0 : (cos(angle) * rotationRadius), buttonClicked ? 0 : (sin(angle) * rotationRadius));
-            glBindVertexArray(VAO[0]);
+            glBindTexture(GL_TEXTURE_2D, mainWallPicturesTextures[i]);
+            frameShader.setFloat("time", currentFrame);
+            frameShader.setVec2("circularPosition", buttonClicked ? 0 : (cos(angle) * rotationRadius), buttonClicked ? 0 : (sin(angle) * rotationRadius));
+            glBindVertexArray(VAO[1]);
             glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
         }
 
@@ -353,34 +400,36 @@ int main(void)
         for (int i = 0; i < 4; i++)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glUseProgram(pictureShader);
+            pictureShader.use();
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, picturesTextures[i]);
-            glUniform1i(uPictureTexLoc, i);
-            glUniform2f(uPictureCircularPositionLoc, buttonClicked ? 0 : (cos(angle) * rotationRadius), buttonClicked ? 0 : (sin(angle) * rotationRadius));
-            glBindVertexArray(VAO[0]);
+            glBindTexture(GL_TEXTURE_2D, mainWallPicturesTextures[i]);
+            pictureShader.setInt("uTex", i);
+            pictureShader.setVec2("circularPosition", buttonClicked ? 0 : (cos(angle) * rotationRadius), buttonClicked ? 0 : (sin(angle) * rotationRadius));
+            glBindVertexArray(VAO[1]);
             glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
         }
 
         //Crtanje dugmeta
-        glUseProgram(buttonShader);
-        glBindVertexArray(VAO[1]);
-        buttonClicked ? glUniform4f(uButtonColorLoc, 0.0f, 0.0f, 0.0f, 1.0f) : glUniform4f(uButtonColorLoc, 1.0f, 1.0f, 0.0f, 1.0f);
+        basicColorShader.use();
+        glBindVertexArray(VAO[2]);
+        buttonClicked ? basicColorShader.setVec4("buttonColor", 0.0f, 0.0f, 0.0f, 1.0f) : basicColorShader.setVec4("buttonColor", 1.0f, 1.0f, 0.0f, 1.0f);
         glDrawArrays(GL_TRIANGLE_FAN, 0, CRES + 2);
 
         //Crtanje progress bar-a
-        glUseProgram(progressShader);
-        glUniform1f(uProgressValueLoc, progressValue);
-        glBindVertexArray(VAO[2]);
+        progressShader.use();
+        progressShader.setFloat("progressValue", progressValue);
+        glBindVertexArray(VAO[3]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         //Crtanje potpisa
-        glUseProgram(signatureShader);
-        glActiveTexture(GL_TEXTURE0 + sizeof(picturesTextures));
+        basicTextureShader.use();
+        glActiveTexture(GL_TEXTURE0 + sizeof(mainWallPicturesTextures));
         glBindTexture(GL_TEXTURE_2D, signatureTexture);
-        glUniform1i(uSignatureTexLoc, sizeof(picturesTextures));
-        glBindVertexArray(VAO[3]);
+        basicTextureShader.setInt("uTex", sizeof(mainWallPicturesTextures));
+        glBindVertexArray(VAO[4]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+        glUseProgram(0);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -393,95 +442,61 @@ int main(void)
 
 
     //Brisanje bafera i sejdera
-    glDeleteBuffers(4, VBO);
-    glDeleteVertexArrays(4, VAO);
-    glDeleteProgram(frameShader);
-    glDeleteProgram(pictureShader);
-    glDeleteProgram(buttonShader);
-    glDeleteProgram(progressShader);
-    glDeleteProgram(signatureShader);
+    glDeleteBuffers(5, VBO);
+    glDeleteVertexArrays(5, VAO);
+    delete &frameShader;
+    delete &pictureShader;
+    delete &progressShader;
+    delete &basicColorShader;
+    delete &basicTextureShader;
     //Sve OK - batali program
     glfwTerminate();
     return 0;
 }
 
-unsigned int compileShader(GLenum type, const char* source)
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    //Uzima kod u fajlu na putanji "source", kompajlira ga i vraca sejder tipa "type"
-    //Citanje izvornog koda iz fajla
-    std::string content = "";
-    std::ifstream file(source);
-    std::stringstream ss;
-    if (file.is_open())
-    {
-        ss << file.rdbuf();
-        file.close();
-        std::cout << "Uspjesno procitao fajl sa putanje \"" << source << "\"!" << std::endl;
-    }
-    else {
-        ss << "";
-        std::cout << "Greska pri citanju fajla sa putanje \"" << source << "\"!" << std::endl;
-    }
-    std::string temp = ss.str();
-    const char* sourceCode = temp.c_str(); //Izvorni kod sejdera koji citamo iz fajla na putanji "source"
-
-    int shader = glCreateShader(type); //Napravimo prazan sejder odredjenog tipa (vertex ili fragment)
-
-    int success; //Da li je kompajliranje bilo uspjesno (1 - da)
-    char infoLog[512]; //Poruka o gresci (Objasnjava sta je puklo unutar sejdera)
-    glShaderSource(shader, 1, &sourceCode, NULL); //Postavi izvorni kod sejdera
-    glCompileShader(shader); //Kompajliraj sejder
-
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success); //Provjeri da li je sejder uspjesno kompajliran
-    if (success == GL_FALSE)
-    {
-        glGetShaderInfoLog(shader, 512, NULL, infoLog); //Pribavi poruku o gresci
-        if (type == GL_VERTEX_SHADER)
-            printf("VERTEX");
-        else if (type == GL_FRAGMENT_SHADER)
-            printf("FRAGMENT");
-        printf(" sejder ima gresku! Greska: \n");
-        printf(infoLog);
-    }
-    return shader;
+    glViewport(0, 0, width, height);
 }
-unsigned int createShader(const char* vsSource, const char* fsSource)
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-    //Pravi objedinjeni sejder program koji se sastoji od Vertex sejdera ciji je kod na putanji vsSource
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
 
-    unsigned int program; //Objedinjeni sejder
-    unsigned int vertexShader; //Verteks sejder (za prostorne podatke)
-    unsigned int fragmentShader; //Fragment sejder (za boje, teksture itd)
-
-    program = glCreateProgram(); //Napravi prazan objedinjeni sejder program
-
-    vertexShader = compileShader(GL_VERTEX_SHADER, vsSource); //Napravi i kompajliraj vertex sejder
-    fragmentShader = compileShader(GL_FRAGMENT_SHADER, fsSource); //Napravi i kompajliraj fragment sejder
-
-    //Zakaci verteks i fragment sejdere za objedinjeni program
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-
-    glLinkProgram(program); //Povezi ih u jedan objedinjeni sejder program
-    glValidateProgram(program); //Izvrsi provjeru novopecenog programa
-
-    int success;
-    char infoLog[512];
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &success); //Slicno kao za sejdere
-    if (success == GL_FALSE)
+    if (firstMouse)
     {
-        glGetShaderInfoLog(program, 512, NULL, infoLog);
-        std::cout << "Objedinjeni sejder ima gresku! Greska: \n";
-        std::cout << infoLog << std::endl;
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
     }
 
-    //Posto su kodovi sejdera u objedinjenom sejderu, oni pojedinacni programi nam ne trebaju, pa ih brisemo zarad ustede na memoriji
-    glDetachShader(program, vertexShader);
-    glDeleteShader(vertexShader);
-    glDetachShader(program, fragmentShader);
-    glDeleteShader(fragmentShader);
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
 
-    return program;
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+void processCommonInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 static unsigned loadImageToTexture(const char* filePath) {

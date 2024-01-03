@@ -36,10 +36,10 @@
     <None Include="picture.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="button.vert">
+    <None Include="basicColor.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="button.frag">
+    <None Include="basicColor.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
     <None Include="progress.frag">
@@ -48,15 +48,21 @@
     <None Include="progress.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="signature.frag">
+    <None Include="basicTexture.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="signature.vert">
+    <None Include="basicTexture.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
