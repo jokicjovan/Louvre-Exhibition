@@ -149,6 +149,8 @@
     <None Include="basicColor.vert" />
     <None Include="frame.frag" />
     <None Include="frame.vert" />
+    <None Include="phong.frag" />
+    <None Include="phong.vert" />
     <None Include="picture.frag" />
     <None Include="picture.vert" />
     <None Include="packages.config" />
