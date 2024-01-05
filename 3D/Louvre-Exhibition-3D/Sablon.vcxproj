@@ -145,19 +145,19 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="basicColor.frag" />
-    <None Include="basicColor.vert" />
-    <None Include="frame.frag" />
-    <None Include="frame.vert" />
-    <None Include="phong.frag" />
-    <None Include="phong.vert" />
-    <None Include="picture.frag" />
-    <None Include="picture.vert" />
+    <None Include="button.frag" />
+    <None Include="button.vert" />
+    <None Include="frontWallFrame.frag" />
+    <None Include="frontWallFrame.vert" />
+    <None Include="room.frag" />
+    <None Include="room.vert" />
+    <None Include="frontWallPicture.frag" />
+    <None Include="frontWallPicture.vert" />
     <None Include="packages.config" />
     <None Include="progress.frag" />
     <None Include="progress.vert" />
-    <None Include="basicTexture.frag" />
-    <None Include="basicTexture.vert" />
+    <None Include="signature.frag" />
+    <None Include="signature.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />

@@ -24,22 +24,22 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="frame.frag">
+    <None Include="frontWallFrame.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="frame.vert">
+    <None Include="frontWallFrame.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="picture.frag">
+    <None Include="frontWallPicture.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="picture.vert">
+    <None Include="frontWallPicture.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="basicColor.vert">
+    <None Include="button.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="basicColor.frag">
+    <None Include="button.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
     <None Include="progress.frag">
@@ -48,16 +48,16 @@
     <None Include="progress.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="basicTexture.frag">
+    <None Include="signature.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="basicTexture.vert">
+    <None Include="signature.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="phong.frag">
+    <None Include="room.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="phong.vert">
+    <None Include="room.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
   </ItemGroup>

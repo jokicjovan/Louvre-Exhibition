@@ -4,7 +4,7 @@ layout(location = 0) in vec3 inPos;
 layout(location = 1) in vec3 inNor; //Normale
 
 out vec3 chFragPos; //Interpolirana pozicija fragmenta
-out vec3 chNor; //Interpolirane normale
+out vec3 chNor;		//Interpolirane normale
 
 uniform mat4 uM;
 uniform mat4 uV;
