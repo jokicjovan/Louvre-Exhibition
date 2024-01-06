@@ -16,9 +16,9 @@ void main()
                            
     float frequency = 1.0;                                              // frekvencija
     float phase = 0.0;                                                  // pocetak oscilacije
-    float red = 0.5 + 0.5 * sin(frequency * uTime + phase);              // crvena
-    float green = 0.5 + 0.5 * sin(frequency * uTime + phase + 2.0);      // zelena
-    float blue = 0.5 + 0.5 * sin(frequency * uTime + phase + 4.0);       // plava
+    float red = 0.5 + 0.5 * sin(frequency * uTime + phase);             // crvena
+    float green = 0.5 + 0.5 * sin(frequency * uTime + phase + 2.0);     // zelena
+    float blue = 0.5 + 0.5 * sin(frequency * uTime + phase + 4.0);      // plava
     vec4 oscillatingColor = vec4(red, green, blue, 1.0);                // sjedinjavanje boja 
 
     vec4 picture = texture(uTex, texCoords);

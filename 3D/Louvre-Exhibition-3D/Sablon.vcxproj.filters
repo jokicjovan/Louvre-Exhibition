@@ -30,12 +30,6 @@
     <None Include="front_wall_picture.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="button.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="button.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
     <None Include="progress.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
@@ -48,10 +42,16 @@
     <None Include="signature.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="room.frag">
+    <None Include="lighting_shader.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="room.vert">
+    <None Include="lighting_shader.vert">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
+    <None Include="back_wall_picture.vert">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
+    <None Include="back_wall_picture.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
   </ItemGroup>
@@ -63,6 +63,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
