@@ -24,16 +24,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="frontWallFrame.frag">
+    <None Include="front_wall_picture.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="frontWallFrame.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="frontWallPicture.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="frontWallPicture.vert">
+    <None Include="front_wall_picture.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
     <None Include="button.vert">

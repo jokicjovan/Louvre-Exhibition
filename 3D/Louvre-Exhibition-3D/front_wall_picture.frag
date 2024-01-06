@@ -5,6 +5,7 @@ in float frameWidth; // sirina okvira
 in vec4 frameColor;  // boja okvira
 
 uniform float uTime;  // promenljiva za vreme
+uniform sampler2D uTex; // promenljiva teksturna jedinica
 
 out vec4 outCol;     // izlazna boja
 
@@ -20,5 +21,6 @@ void main()
     float blue = 0.5 + 0.5 * sin(frequency * uTime + phase + 4.0);       // plava
     vec4 oscillatingColor = vec4(red, green, blue, 1.0);                // sjedinjavanje boja 
 
-    outCol = mix(frameColor + oscillatingColor, vec4(0.0,0.0,0.0,0.0), borderCondition);             // ako je 1.0 postavlja na providnu crnu, inace boji zadatom bojom
+    vec4 picture = texture(uTex, texCoords);
+    outCol = mix(frameColor + oscillatingColor, picture, borderCondition);             // ako je 1.0 postavlja na providnu crnu, inace boji zadatom bojom
 }

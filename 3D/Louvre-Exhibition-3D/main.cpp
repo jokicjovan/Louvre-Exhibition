@@ -20,12 +20,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processCommonInput(GLFWwindow* window);
+void processSceneInput(GLFWwindow* window);
 
 static unsigned loadImageToTexture(const char* filePath);
 
 // settings
 const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 700;
+const unsigned int SCR_HEIGHT = 900;
 
 // camera
 Camera camera(glm::vec3(0.0f, -0.3f, 0.0f), glm::vec3(-1.8f, -0.3f, -1.8f), glm::vec3(1.8f, 0.8f, 1.8f));
@@ -85,9 +86,8 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROMJENLJIVE I BAFERI +++++++++++++++++++++++++++++++++++++++++++++++++
-    Shader phongShader("room.vert", "room.frag");
-    Shader frontWallFrameShader("frontWallFrame.vert", "frontWallFrame.frag");
-    Shader frontWallPictureShader("frontWallPicture.vert", "frontWallPicture.frag");
+    Shader roomShader("room.vert", "room.frag");
+    Shader frontWallPictureShader("front_wall_picture.vert", "front_wall_picture.frag");
     Shader progressShader("progress.vert", "progress.frag");
     Shader buttonShader("button.vert", "button.frag");
     Shader signatureShader("signature.vert", "signature.frag");
@@ -100,7 +100,7 @@ int main(void)
     // ------------------------------- SOBA -------------------------------
     float roomVertices[] = {
         //X      Y       Z       NX     NY     NZ
-        //BACK
+        //FRONT
         -2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
          2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
          2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
@@ -108,21 +108,21 @@ int main(void)
         -2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
         -2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
                                     
-        //FRONT                      
+        //BACK                      
+         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
         -2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-         2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
         -2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
+         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
+         2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
         -2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
                  
         //LEFT   
-        -2.0f,   1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
+        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
         -2.0f,   1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f, - 1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
         -2.0f,   1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
+        -2.0f,   1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
+        -2.0f, - 1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
+        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
                        
         //RIGHT            
          2.0f,   1.0f,   2.0f,  -1.0f,  0.0f,  0.0f,
@@ -134,10 +134,10 @@ int main(void)
                        
         //BOTTOM       
         -2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,
-         2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,
-         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
-         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
         -2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
+         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
+         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
+         2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,
         -2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,
                                     
         //TOP                       
@@ -186,26 +186,26 @@ int main(void)
         //X                                                                                                                                              Y                     Z         S    T      OKVIR    R    G    B    A
         // Mona Lisa sa okvirom                                                                                                                                            
         -2.0f + pictureOffset                                                                                                                         ,  pictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Levo
-        -2.0f + pictureOffset + frontWallPicturesWidths[0]                                                                                            ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Desno
         -2.0f + pictureOffset                                                                                                                         , -pictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Levo
+        -2.0f + pictureOffset + frontWallPicturesWidths[0]                                                                                            ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Desno
         -2.0f + pictureOffset + frontWallPicturesWidths[0]                                                                                            , -pictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Desno
                                                                                                                                                                                   
         // The Raft of the Medusa sa okvirom                                                                                                                                                              
         -2.0f + 2 * pictureOffset + frontWallPicturesWidths[0]                                                                                        ,  pictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
-        -2.0f + 2 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
         -2.0f + 2 * pictureOffset + frontWallPicturesWidths[0]                                                                                        , -pictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
+        -2.0f + 2 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
         -2.0f + 2 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           , -pictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
                                                                                                                                                                                   
         // Liberty Leading the People sa okvirom                                                                                                                                  
         -2.0f + 3 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           ,  pictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
-        -2.0f + 3 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
         -2.0f + 3 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           , -pictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
+        -2.0f + 3 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
         -2.0f + 3 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              , -pictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
                                                                                                                                                                            
         // The Coronation of Napoleon sa okvirom                                                                                                                             
         -2.0f + 4 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              ,  pictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
-        -2.0f + 4 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2] + frontWallPicturesWidths[3] ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
         -2.0f + 4 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              , -pictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
+        -2.0f + 4 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2] + frontWallPicturesWidths[3] ,  pictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
         -2.0f + 4 * pictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2] + frontWallPicturesWidths[3] , -pictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
     };
 
@@ -262,8 +262,8 @@ int main(void)
     float progressBarVertices[] = {
         //  X      Y       Z
            -1.9f,  0.7f,  -1.99f,   // Gore-Levo
-           -1.9f,  0.8f,  -1.99f,   // Gore-Desno
             0.1f,  0.7f,  -1.99f,   // Dole-Levo
+           -1.9f,  0.8f,  -1.99f,   // Gore-Desno
             0.1f,  0.8f,  -1.99f    // Dole-Desno
     };
 
@@ -283,8 +283,8 @@ int main(void)
     float signatureVertices[] = {
         // X        Y       S    T
            0.45f,  -0.6f,   0.0, 1.0,  // Gore-Levo
-           0.9f,   -0.6f,   1.0, 1.0,  // Gore-Desno
            0.45f,  -0.9f,   0.0, 0.0,  // Dole-Levo
+           0.9f,   -0.6f,   1.0, 1.0,  // Gore-Desno
            0.9f,   -0.9f,   1.0, 0.0   // Dole-Desno
     };
 
@@ -365,23 +365,23 @@ int main(void)
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ RENDER LOOP - PETLJA ZA CRTANJE +++++++++++++++++++++++++++++++++++++++++++++++++
     
     // Postavljanje jacine svetla i materiala zida
-    phongShader.use();
-    phongShader.setVec3("uLight.position", glm::vec3(0.0f, 0.8f, 0.0f));
-    phongShader.setVec3("uLight.direction", glm::vec3(0.0f, -0.7f, -1.0f));
-    phongShader.setFloat("uLight.cutOff", glm::cos(glm::radians(60.0f)));
+    roomShader.use();
+    roomShader.setVec3("uLight.position", glm::vec3(0.0f, 0.9f, 0.0f));
+    roomShader.setVec3("uLight.direction", glm::vec3(0.0f, -0.9f, -1.5f));       
+    roomShader.setFloat("uLight.cutOff", glm::cos(glm::radians(60.0f)));
+    roomShader.setFloat("uLight.outerCutOff", glm::cos(glm::radians(65.0f)));
 
-    phongShader.setVec3("uLight.ambient", 0.2f, 0.2f, 0.2f);
-    phongShader.setVec3("uLight.diffuse", 0.8, 0.8, 0.8);
-    phongShader.setVec3("uLight.specular", 1.0, 1.0, 1.0);
+    roomShader.setVec3("uLight.ambient", 0.3f, 0.3f, 0.3f);
+    roomShader.setVec3("uLight.diffuse", 0.8f, 0.8f, 0.8f);
+    roomShader.setVec3("uLight.specular", 1.0f, 1.0f, 1.0f);
 
-    phongShader.setFloat("uLight.constant", 1.0f);
-    phongShader.setFloat("uLight.linear", 0.09f);
-    phongShader.setFloat("uLight.quadratic", 0.032f);
+    roomShader.setFloat("uLight.constant", 1.0f);
+    roomShader.setFloat("uLight.linear", 0.09f);
+    roomShader.setFloat("uLight.quadratic", 0.032f);
 
-    phongShader.setFloat("uMaterial.shine", 0.6 * 128); // Marble
-    phongShader.setVec3("uMaterial.ambient", 0.02, 0.02, 0.02);
-    phongShader.setVec3("uMaterial.diffuse", 0.8, 0.8, 0.8);
-    phongShader.setVec3("uMaterial.specular", 0.1, 0.1, 0.1);
+    roomShader.setFloat("uMaterial.shininess", 0.6 * 128); // Marble
+    roomShader.setVec3("uMaterial.diffuse", 0.8f, 0.8f, 0.8f);
+    roomShader.setVec3("uMaterial.specular", 0.1f, 0.1f, 0.1f);
     glUseProgram(0);
 
     // Button
@@ -393,7 +393,11 @@ int main(void)
     float rotationRadius = 0.1f;
     float baseRotationSpeed = 1.0f;
     float maxRotationSpeed = 10.0f;
-
+    
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glEnable(GL_CULL_FACE);  
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     while (!glfwWindowShouldClose(window))
     {
@@ -404,24 +408,23 @@ int main(void)
         lastFrame = currentFrame;
 
         processCommonInput(window);
+        processSceneInput(window);
         if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         {
             buttonClicked = true;
-            phongShader.use();
-            phongShader.setFloat("uMaterial.shine", 0.6 * 128); //Materijal: Dark Stone
-            phongShader.setVec3("uMaterial.ambient", 0.05, 0.05, 0.05);
-            phongShader.setVec3("uMaterial.diffuse", 0.3, 0.3, 0.3);
-            phongShader.setVec3("uMaterial.specular", 0.5, 0.5, 0.5);
+            roomShader.use();
+            roomShader.setFloat("uMaterial.shininess", 0.6 * 128); //Materijal: Dark Stone
+            roomShader.setVec3("uMaterial.diffuse", 0.3, 0.3, 0.3);
+            roomShader.setVec3("uMaterial.specular", 0.5, 0.5, 0.5);
             glUseProgram(0);
         }
         if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         {
             buttonClicked = false;
-            phongShader.use();
-            phongShader.setFloat("uMaterial.shine", 0.6 * 128); //Materijal: Marble
-            phongShader.setVec3("uMaterial.ambient", 0.02, 0.02, 0.02);
-            phongShader.setVec3("uMaterial.diffuse", 0.8, 0.8, 0.8);
-            phongShader.setVec3("uMaterial.specular", 0.1, 0.1, 0.1);
+            roomShader.use();
+            roomShader.setFloat("uMaterial.shininess", 0.6 * 128); //Materijal: Marble
+            roomShader.setVec3("uMaterial.diffuse", 0.8, 0.8, 0.8);
+            roomShader.setVec3("uMaterial.specular", 0.1, 0.1, 0.1);
             glUseProgram(0);
         }        
         if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
@@ -439,54 +442,34 @@ int main(void)
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         
-        glEnable(GL_DEPTH_TEST);
         //Crtanje sobe
-        phongShader.use();
-        phongShader.setMat4("uM", model);
-        phongShader.setMat4("uP", projection);
-        phongShader.setMat4("uV", view);
-        phongShader.setVec3("uViewPos", camera.Position);
+        roomShader.use();
+        roomShader.setMat4("uM", model);
+        roomShader.setMat4("uP", projection);
+        roomShader.setMat4("uV", view);
+        roomShader.setVec3("uViewPos", camera.Position);
         glBindVertexArray(VAO[0]);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        glDisable(GL_DEPTH_TEST);
 
-        //Priprema za crtanje slika i okvira
+        //Priprema za crtanje slika prednjeg zida
         float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressValue;
         float angle = fmod(currentFrame * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //Crtanje okvira
-        for (int i = 0; i < 4; i++)
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, buttonClicked ? GL_LINE : GL_FILL);
-            frontWallFrameShader.use();
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, frontWallPicturesTextures[i]);
-            frontWallFrameShader.setMat4("uM", model);
-            frontWallFrameShader.setMat4("uP", projection);
-            frontWallFrameShader.setMat4("uV", view);
-            frontWallFrameShader.setFloat("uTime", currentFrame);
-            frontWallFrameShader.setVec2("uCircularPosition", buttonClicked ? 0 : (cos(angle) * rotationRadius), buttonClicked ? 0 : (sin(angle) * rotationRadius));
-            glBindVertexArray(VAO[1]);
-            glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
-        }
 
-        //Crtanje slika
+        //Crtanje slika sa okvirima
         for (int i = 0; i < 4; i++)
         {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             frontWallPictureShader.use();
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, frontWallPicturesTextures[i]);
             frontWallPictureShader.setMat4("uM", model);
             frontWallPictureShader.setMat4("uP", projection);
             frontWallPictureShader.setMat4("uV", view);
+            frontWallPictureShader.setFloat("uTime", currentFrame);
             frontWallPictureShader.setInt("uTex", i);
             frontWallPictureShader.setVec2("uCircularPosition", buttonClicked ? 0 : (cos(angle) * rotationRadius), buttonClicked ? 0 : (sin(angle) * rotationRadius));
             glBindVertexArray(VAO[1]);
             glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
         }
-        glDisable(GL_BLEND);
 
         //Crtanje dugmeta
         buttonShader.use();
@@ -506,9 +489,6 @@ int main(void)
         glBindVertexArray(VAO[3]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        //Priprema za crtanje potpisa
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         //Crtanje potpisa
         signatureShader.use();
         glActiveTexture(GL_TEXTURE0);
@@ -516,9 +496,7 @@ int main(void)
         signatureShader.setInt("uTex", 0);
         glBindVertexArray(VAO[4]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glDisable(GL_BLEND);
 
-        glDisable(GL_TEXTURE_2D);
         glBindVertexArray(0);
         glUseProgram(0);
 
@@ -584,6 +562,21 @@ void processCommonInput(GLFWwindow* window)
         camera.ProcessKeyboard(UP, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, deltaTime);
+}
+
+void processSceneInput(GLFWwindow* window) {
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 }
 
 static unsigned loadImageToTexture(const char* filePath) {

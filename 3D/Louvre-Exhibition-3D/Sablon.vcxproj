@@ -147,12 +147,10 @@
   <ItemGroup>
     <None Include="button.frag" />
     <None Include="button.vert" />
-    <None Include="frontWallFrame.frag" />
-    <None Include="frontWallFrame.vert" />
+    <None Include="front_wall_picture.frag" />
+    <None Include="front_wall_picture.vert" />
     <None Include="room.frag" />
     <None Include="room.vert" />
-    <None Include="frontWallPicture.frag" />
-    <None Include="frontWallPicture.vert" />
     <None Include="packages.config" />
     <None Include="progress.frag" />
     <None Include="progress.vert" />

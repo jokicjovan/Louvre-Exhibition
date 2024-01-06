@@ -3,6 +3,7 @@
 layout(location = 0) in vec3 inPos;
 
 out vec3 progressCoords;
+
 uniform mat4 uM;
 uniform mat4 uV;
 uniform mat4 uP;
