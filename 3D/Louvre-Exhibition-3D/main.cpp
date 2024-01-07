@@ -12,9 +12,9 @@
 //stb_image.h je header-only biblioteka za ucitavanje tekstura.
 //Potrebno je definisati STB_IMAGE_IMPLEMENTATION prije njenog ukljucivanja
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "camera.h"
 #include "shader.h"
+#include "model.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -25,6 +25,7 @@ void processSceneInput(GLFWwindow* window);
 void processStopButtonInput(GLFWwindow* window, bool& stopButtonOn);
 void processProgressBarInput(GLFWwindow* window, float& progressValue, float progressStep);
 void processCameraSpotLightInput(GLFWwindow*  window, bool& cameraSpotLightOn);
+void processLampPointLightInput(GLFWwindow* window, bool& lampPointLightOn);
 
 static unsigned loadImageToTexture(const char* filePath);
 
@@ -90,16 +91,15 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROMJENLJIVE I BAFERI +++++++++++++++++++++++++++++++++++++++++++++++++
-    Shader lightingShader("lighting_shader.vert", "lighting_shader.frag");
-    Shader backWallPictureShader("back_wall_picture.vert", "back_wall_picture.frag");
-    Shader frontWallPictureShader("front_wall_picture.vert", "front_wall_picture.frag");
+    Shader lightingShader("lighting.vert", "lighting.frag");
+    Shader wallPictureShader("wall_picture.vert", "wall_picture.frag");
     Shader progressShader("progress.vert", "progress.frag");
     Shader signatureShader("signature.vert", "signature.frag");
 
-    unsigned int VAO[6];
-    glGenVertexArrays(6, VAO);
-    unsigned int VBO[6];
-    glGenBuffers(6, VBO);
+    unsigned int VAO[7];
+    glGenVertexArrays(7, VAO);
+    unsigned int VBO[7];
+    glGenBuffers(7, VBO);
 
     // ------------------------------- SOBA -------------------------------
     float roomVertices[] = {
@@ -187,29 +187,37 @@ int main(void)
     }
 
     float frontWallPicturesVertices[] = {
-        //X                                                                                                                                              Y                     Z         S    T      OKVIR    R    G    B    A
+        //X                                                                                                                                                       Y                              Z         S    T      OKVIR    R    G    B    A
         // Mona Lisa sa okvirom                                                                                                                                            
+        -1.9f + frontWallPictureOffset + frontWallPicturesWidths[0]                                                                                            , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Desno
+        -1.9f + frontWallPictureOffset + frontWallPicturesWidths[0]                                                                                            ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Desno
+        -1.9f + frontWallPictureOffset                                                                                                                         ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Levo
         -1.9f + frontWallPictureOffset                                                                                                                         ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Levo
         -1.9f + frontWallPictureOffset                                                                                                                         , -frontWallPictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Levo
-        -1.9f + frontWallPictureOffset + frontWallPicturesWidths[0]                                                                                            ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Gore-Desno
         -1.9f + frontWallPictureOffset + frontWallPicturesWidths[0]                                                                                            , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   1.0, 1.0, 0.0, 1.0,  //Dole-Desno
                                                                                                                                                                                   
         // The Raft of the Medusa sa okvirom                                                                                                                                                              
+        -1.9f + 2 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
+        -1.9f + 2 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
+        -1.9f + 2 * frontWallPictureOffset + frontWallPicturesWidths[0]                                                                                        ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
         -1.9f + 2 * frontWallPictureOffset + frontWallPicturesWidths[0]                                                                                        ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
         -1.9f + 2 * frontWallPictureOffset + frontWallPicturesWidths[0]                                                                                        , -frontWallPictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
-        -1.9f + 2 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
         -1.9f + 2 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   1.0, 0.0, 0.0, 1.0,
                                                                                                                                                                                   
         // Liberty Leading the People sa okvirom                                                                                                                                  
+        -1.9f + 3 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
+        -1.9f + 3 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
+        -1.9f + 3 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
         -1.9f + 3 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
         -1.9f + 3 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1]                                                           , -frontWallPictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
-        -1.9f + 3 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
         -1.9f + 3 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   0.5, 0.0, 0.5, 1.0,
                                                                                                                                                                            
         // The Coronation of Napoleon sa okvirom                                                                                                                             
+        -1.9f + 4 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2] + frontWallPicturesWidths[3] , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
+        -1.9f + 4 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2] + frontWallPicturesWidths[3] ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
+        -1.9f + 4 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
         -1.9f + 4 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              ,  frontWallPictureHeight / 2 ,  -1.99f,    0.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
         -1.9f + 4 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2]                              , -frontWallPictureHeight / 2 ,  -1.99f,    0.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
-        -1.9f + 4 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2] + frontWallPicturesWidths[3] ,  frontWallPictureHeight / 2 ,  -1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
         -1.9f + 4 * frontWallPictureOffset + frontWallPicturesWidths[0] + frontWallPicturesWidths[1] + frontWallPicturesWidths[2] + frontWallPicturesWidths[3] , -frontWallPictureHeight / 2 ,  -1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.0, 1.0, 1.0,
     };
 
@@ -256,28 +264,36 @@ int main(void)
     float backWallPicturesVertices[] = {
         //X                                                                                                                                                 Y                             Z         S    T      OKVIR    R    G    B    A
         // Starry Night sa okvirom                                                                                                                                         
+        -1.9f + backWallPictureOffset                                                                                                                     ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Gore-Levo
+        -1.9f + backWallPictureOffset + backWallPicturesWidths[0]                                                                                         ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Gore-Desno
+        -1.9f + backWallPictureOffset + backWallPicturesWidths[0]                                                                                         , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Dole-Desno
+        -1.9f + backWallPictureOffset + backWallPicturesWidths[0]                                                                                         , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Dole-Desno
         -1.9f + backWallPictureOffset                                                                                                                     , -backWallPictureHeight / 2 ,  1.99f,    0.0, 0.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Dole-Levo
         -1.9f + backWallPictureOffset                                                                                                                     ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Gore-Levo
-        -1.9f + backWallPictureOffset + backWallPicturesWidths[0]                                                                                         , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Dole-Desno
-        -1.9f + backWallPictureOffset + backWallPicturesWidths[0]                                                                                         ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   0.0, 1.0, 1.0, 1.0,  //Gore-Desno
                                                                                                                                                   
         // Wheat Field with Cypresses sa okvirom                                                                                                                                                          
+        -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0]                                                                                     ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
+        -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
+        -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
+        -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
         -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0]                                                                                     , -backWallPictureHeight / 2 ,  1.99f,    0.0, 0.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
         -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0]                                                                                     ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
-        -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
-        -1.9f + 2 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   1.0, 0.0, 1.0, 1.0,
                                                                                                                                                   
         // Cafe Terrace at Night sa okvirom                                                                                                                               
+        -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
+        -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
+        -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
+        -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
         -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         , -backWallPictureHeight / 2 ,  1.99f,    0.0, 0.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
         -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1]                                                         ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
-        -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
-        -1.9f + 3 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.5, 0.5, 1.0,
     
-        // The Coronation of Napoleon sa okvirom                                                                                                                         
+        // The Almond blossom sa okvirom                                                                                                                         
+        -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
+        -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2] + backWallPicturesWidths[3] ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
+        -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2] + backWallPicturesWidths[3] , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
+        -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2] + backWallPicturesWidths[3] , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
         -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             , -backWallPictureHeight / 2 ,  1.99f,    0.0, 0.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
         -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2]                             ,  backWallPictureHeight / 2 ,  1.99f,    0.0, 1.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
-        -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2] + backWallPicturesWidths[3] , -backWallPictureHeight / 2 ,  1.99f,    1.0, 0.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
-        -1.9f + 4 * backWallPictureOffset + backWallPicturesWidths[0] + backWallPicturesWidths[1] + backWallPicturesWidths[2] + backWallPicturesWidths[3] ,  backWallPictureHeight / 2 ,  1.99f,    1.0, 1.0   ,0.05f,   0.0, 0.5, 1.0, 1.0,
     };
 
     unsigned int backWallPicturesStride = (3 + 2 + 1 + 4) * sizeof(float);
@@ -382,7 +398,37 @@ int main(void)
     // Atributi za teksture
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, signatureStride, (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    
+
+    // ------------------------------- LAMPA -------------------------------
+
+    Model lamp("res/lamp/model.dae");
+
+    // ------------------------------- DUGME ZA LAMPU -------------------------------
+
+    float lampButtonVertices[] = {
+        //  X       Y       Z      NX     NY     NZ
+           -1.99f, -0.5f,  -1.0f,  0.0f,  1.0f,  0.0f,  // Dole-Desno
+           -1.99f, -0.3f,  -1.0f,  0.0f,  1.0f,  0.0f,  // Gore-Desno
+           -1.99f, -0.3f,  -0.9f,  0.0f,  1.0f,  0.0f,  // Gore-Levo
+           -1.99f, -0.3f,  -0.9f,  0.0f,  1.0f,  0.0f,  // Gore-Levo
+           -1.99f, -0.5f,  -0.9f,  0.0f,  1.0f,  0.0f,  // Dole-Levo
+           -1.99f, -0.5f,  -1.0f,  0.0f,  1.0f,  0.0f   // Dole-Desno
+    };
+
+    float lampButtonStride = (3 + 3) * sizeof(float);
+
+    glBindVertexArray(VAO[6]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[6]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lampButtonVertices), lampButtonVertices, GL_STATIC_DRAW);
+
+    // Atributi za tacke
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, lampButtonStride, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Atributi za normale
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, lampButtonStride, (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
     // CISCENJE
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -446,13 +492,11 @@ int main(void)
     // CISCENJE
     glBindTexture(GL_TEXTURE_2D, 0);
 
-
-
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ RENDER LOOP - PETLJA ZA CRTANJE +++++++++++++++++++++++++++++++++++++++++++++++++
     
     // Postavljanje svetala
     float walLSpotLightIntensity = 0.3f;
-    float floorPointLightIntensity = 0.2f;
+    float floorPointLightIntensity = 0.3f;
     float cameraSpotLightIntensity = 0.3f;
 
     lightingShader.use();
@@ -467,7 +511,7 @@ int main(void)
     lightingShader.setFloat("uWallSpotLight.linear", 0.09f);
     lightingShader.setFloat("uWallSpotLight.quadratic", 0.032f);
 
-    lightingShader.setVec3("uFloorPointLight.position", glm::vec3(-1.8f, -1.0f, 0.0f));
+    lightingShader.setVec3("uFloorPointLight.position", glm::vec3(-1.85f, -1.0f, 0.0f));
     lightingShader.setVec3("uFloorPointLight.ambient", floorPointLightIntensity * 0.7f, floorPointLightIntensity * 0.4f, floorPointLightIntensity * 0.0f);
     lightingShader.setVec3("uFloorPointLight.diffuse", floorPointLightIntensity * 0.9f, floorPointLightIntensity * 0.5f, floorPointLightIntensity * 0.2f);
     lightingShader.setVec3("uFloorPointLight.specular", floorPointLightIntensity * 1.0f, floorPointLightIntensity * 0.7f, floorPointLightIntensity * 0.5f);
@@ -491,6 +535,7 @@ int main(void)
     // Button
     bool stopButtonOn = false;
     bool cameraSpotLightOn = true;
+    bool lampPointLightOn = true;
     // Progress bar
     float progressStep = 0.01f;
     float progressValue = 0.0f;
@@ -517,7 +562,7 @@ int main(void)
         processStopButtonInput(window, stopButtonOn);   
         processProgressBarInput(window, progressValue, progressStep);
         processCameraSpotLightInput(window, cameraSpotLightOn);
-
+        processLampPointLightInput(window, lampPointLightOn);
 
         lightingShader.use();
         glm::mat4 model = glm::mat4(1.0f);
@@ -539,7 +584,17 @@ int main(void)
             lightingShader.setVec3("uCameraSpotLight.diffuse", 0.0f, 0.0f, 0.0f);
             lightingShader.setVec3("uCameraSpotLight.specular", 0.0f, 0.0f, 0.0f);
         }
-        glUseProgram(0);
+        if (lampPointLightOn) {
+            lightingShader.setVec3("uFloorPointLight.ambient", floorPointLightIntensity * 0.7f, floorPointLightIntensity * 0.4f, floorPointLightIntensity * 0.0f);
+            lightingShader.setVec3("uFloorPointLight.diffuse", floorPointLightIntensity * 0.9f, floorPointLightIntensity * 0.5f, floorPointLightIntensity * 0.2f);
+            lightingShader.setVec3("uFloorPointLight.specular", floorPointLightIntensity * 1.0f, floorPointLightIntensity * 0.7f, floorPointLightIntensity * 0.5f);
+        }
+        else {
+            lightingShader.setVec3("uFloorPointLight.ambient", 0.0f, 0.0f, 0.0f);
+            lightingShader.setVec3("uFloorPointLight.diffuse", 0.0f, 0.0f, 0.0f);
+            lightingShader.setVec3("uFloorPointLight.specular", 0.0f, 0.0f, 0.0f);
+        }
+        glUseProgram(0);;
 
         //Crtanje sobe
         lightingShader.use();
@@ -560,36 +615,32 @@ int main(void)
         //Priprema za crtanje slika prednjeg zida
         float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressValue;
         float angle = fmod(currentFrame * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
+        wallPictureShader.use();
+        wallPictureShader.setMat4("uM", model);
+        wallPictureShader.setMat4("uP", projection);
+        wallPictureShader.setMat4("uV", view);
+        wallPictureShader.setFloat("uTime", currentFrame);
 
         //Crtanje slika prednjeg zida sa okvirima
         for (int i = 0; i < 4; i++)
         {
-            frontWallPictureShader.use();
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, frontWallPicturesTextures[i]);
-            frontWallPictureShader.setMat4("uM", model);
-            frontWallPictureShader.setMat4("uP", projection);
-            frontWallPictureShader.setMat4("uV", view);
-            frontWallPictureShader.setFloat("uTime", currentFrame);
-            frontWallPictureShader.setInt("uTex", i);
-            frontWallPictureShader.setVec2("uCircularPosition", stopButtonOn ? 0 : (cos(angle) * rotationRadius), stopButtonOn ? 0 : (sin(angle) * rotationRadius));
+            wallPictureShader.setInt("uTex", i);
+            wallPictureShader.setVec2("uCircularPosition", stopButtonOn ? 0 : (cos(angle) * rotationRadius), stopButtonOn ? 0 : (sin(angle) * rotationRadius));
             glBindVertexArray(VAO[1]);
-            glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
+            glDrawArrays(GL_TRIANGLES, i * 6, 6);
         }
 
         //Crtanje slika zadnjeg zida sa okvirima
         for (int i = 0; i < 4; i++)
         {
-            backWallPictureShader.use();
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, backWallPicturesTextures[i]);
-            backWallPictureShader.setMat4("uM", model);
-            backWallPictureShader.setMat4("uP", projection);
-            backWallPictureShader.setMat4("uV", view);
-            backWallPictureShader.setFloat("uTime", currentFrame);
-            backWallPictureShader.setInt("uTex", i);
+            wallPictureShader.setInt("uTex", i);
+            wallPictureShader.setVec2("uCircularPosition", 0 ,0);
             glBindVertexArray(VAO[2]);
-            glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
+            glDrawArrays(GL_TRIANGLES, i * 6, 6);
         }
 
         //Crtanje dugmeta
@@ -625,6 +676,28 @@ int main(void)
         glBindVertexArray(VAO[5]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+        //Crtanje dugmeta za lampu
+        lightingShader.use();
+        if (lampPointLightOn) {
+            lightingShader.setFloat("uMaterial.shininess", 1.0f);
+            lightingShader.setVec3("uMaterial.diffuse", 0.0f, 1.0f, 0.0f);
+            lightingShader.setVec3("uMaterial.specular", 0.0f, 1.0f, 0.0f);
+        }
+        else
+        {
+            lightingShader.setFloat("uMaterial.shininess", 1.0f);
+            lightingShader.setVec3("uMaterial.diffuse", 1.0f, 0.0f, 0.0f);
+            lightingShader.setVec3("uMaterial.specular", 1.0f, 0.0f, 0.0f);
+        }
+        glBindVertexArray(VAO[6]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        //Crtanje lampe
+        lightingShader.use();
+        glm::mat4 lampModelMatrix = glm::translate(model, glm::vec3(-1.85f, -1.0f, 0.0f)) * glm::scale(model, glm::vec3(0.005f));
+        lightingShader.setMat4("uM", lampModelMatrix);
+        lamp.Draw(lightingShader);
+
         glBindVertexArray(0);
         glUseProgram(0);
 
@@ -636,8 +709,8 @@ int main(void)
 
 
     //Brisanje bafera i sejdera
-    glDeleteBuffers(6, VBO);
-    glDeleteVertexArrays(6, VAO);
+    glDeleteBuffers(7, VBO);
+    glDeleteVertexArrays(7, VAO);
     //Sve OK - batali program
     glfwTerminate();
     return 0;
@@ -733,8 +806,8 @@ void processProgressBarInput(GLFWwindow* window, float& progressValue, float pro
     }
 }
 
-void processCameraSpotLightInput(GLFWwindow* window, bool& cameraSpotLightOn) {
-
+void processCameraSpotLightInput(GLFWwindow* window, bool& cameraSpotLightOn) 
+{
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
     {
         cameraSpotLightOn = true;
@@ -742,6 +815,21 @@ void processCameraSpotLightInput(GLFWwindow* window, bool& cameraSpotLightOn) {
     if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
     {
         cameraSpotLightOn = false;
+    }
+}
+
+
+void processLampPointLightInput(GLFWwindow* window, bool& lampPointLightOn) 
+{
+    if (camera.Front.x < -0.1f && -1.5 <= camera.Position.z && camera.Position.z <= -0.5 && camera.Position.x < -0.5) {
+        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+        {
+            lampPointLightOn = true;
+        }
+        if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+        {
+            lampPointLightOn = false;
+        }
     }
 }
 

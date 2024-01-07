@@ -24,10 +24,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="front_wall_picture.frag">
+    <None Include="wall_picture.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="front_wall_picture.vert">
+    <None Include="wall_picture.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
     <None Include="progress.frag">
@@ -42,16 +42,10 @@
     <None Include="signature.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="lighting_shader.frag">
+    <None Include="lighting.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="lighting_shader.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="back_wall_picture.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="back_wall_picture.frag">
+    <None Include="lighting.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
   </ItemGroup>

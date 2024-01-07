@@ -145,12 +145,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="back_wall_picture.frag" />
-    <None Include="back_wall_picture.vert" />
-    <None Include="front_wall_picture.frag" />
-    <None Include="front_wall_picture.vert" />
-    <None Include="lighting_shader.frag" />
-    <None Include="lighting_shader.vert" />
+    <None Include="wall_picture.frag" />
+    <None Include="wall_picture.vert" />
+    <None Include="lighting.frag" />
+    <None Include="lighting.vert" />
     <None Include="packages.config" />
     <None Include="progress.frag" />
     <None Include="progress.vert" />
