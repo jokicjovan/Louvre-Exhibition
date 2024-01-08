@@ -20,10 +20,10 @@ uniform mat4 uP;
 void main()
 {
     vec3 circularPositionWithZ = vec3(uCircularPosition, 0.0f);
-    gl_Position = uP * uV * uM * vec4(inPos + circularPositionWithZ, 1.0f);
-    chTexCoords = inTexCoords;
     chFrameWidth = inWidth;
     chFrameColor = inColor;
+    gl_Position = uP * uV * uM * vec4(inPos + circularPositionWithZ, 1.0f);
+    chTexCoords = inTexCoords;
     chFragPos = vec3(uM * vec4(inPos, 1.0));
 	chNor = mat3(transpose(inverse(uM))) * inNor;
 }

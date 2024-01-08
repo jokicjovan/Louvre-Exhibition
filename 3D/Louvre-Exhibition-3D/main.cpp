@@ -27,7 +27,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void processCommonInput(GLFWwindow* window);
-void processSceneInput(GLFWwindow* window);
+void processSceneInput(GLFWwindow* window, bool& useGouraud);
 void processStopButtonInput(GLFWwindow* window, bool& stopButtonOn);
 void processProgressBarInput(GLFWwindow* window, float& progressValue, float progressStep);
 void processCameraSpotLightInput(GLFWwindow*  window, bool& cameraSpotLightOn);
@@ -99,7 +99,8 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROMJENLJIVE I BAFERI +++++++++++++++++++++++++++++++++++++++++++++++++
-    Shader lightingShader("lighting.vert", "lighting.frag");
+    Shader lightingMaterialShader("lighting_material.vert", "lighting_material.frag");
+    Shader lightingTextureShader("lighting_texture.vert", "lighting_texture.frag");
     Shader wallPictureShader("wall_picture.vert", "wall_picture.frag");
     Shader progressShader("progress.vert", "progress.frag");
     Shader signatureShader("signature.vert", "signature.frag");
@@ -111,57 +112,57 @@ int main(void)
 
     // ------------------------------- SOBA -------------------------------
     float roomVertices[] = {
-        //X      Y       Z       NX     NY     NZ
+        //X      Y       Z       NX     NY     NZ      S     T
         //FRONT
-        -2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
-         2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
-         2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
-         2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
-        -2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
-        -2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,
+        -2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,   0.0f, 0.0f,  //Dole-Levo
+         2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,   1.0f, 0.0f,  //Dole-Desno
+         2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,   1.0f, 1.0f,  //Gore-Desno
+         2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,   1.0f, 1.0f,  //Gore-Desno
+        -2.0f,   1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,   0.0f, 1.0f,  //Gore-Levo
+        -2.0f,  -1.0f,  -2.0f,   0.0f,  0.0f,  1.0f,   0.0f, 0.0f,  //Dole-Levo
                                     
         //BACK                      
-         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-        -2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-        -2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-         2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
-        -2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,
+        -2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,   0.0f, 0.0f,  //Dole-Levo
+        -2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,   0.0f, 1.0f,  //Gore-Levo
+         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,   1.0f, 1.0f,  //Gore-Desno
+         2.0f,   1.0f,   2.0f,   0.0f,  0.0f, -1.0f,   1.0f, 1.0f,  //Gore-Desno
+         2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,   1.0f, 0.0f,  //Dole-Desno
+        -2.0f,  -1.0f,   2.0f,   0.0f,  0.0f, -1.0f,   0.0f, 0.0f,  //Dole-Levo
                  
         //LEFT   
-        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f,   1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f,   1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f,   1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f, - 1.0f,   2.0f,   1.0f,  0.0f,  0.0f,
-        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,
+        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,   0.0f, 0.0f,  //Dole-Levo
+        -2.0f,   1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,   0.0f, 1.0f,  //Gore-Levo
+        -2.0f,   1.0f,   2.0f,   1.0f,  0.0f,  0.0f,   1.0f, 1.0f,  //Gore-Desno
+        -2.0f,   1.0f,   2.0f,   1.0f,  0.0f,  0.0f,   1.0f, 1.0f,  //Gore-Desno
+        -2.0f, - 1.0f,   2.0f,   1.0f,  0.0f,  0.0f,   1.0f, 0.0f,  //Dole-Desno
+        -2.0f, - 1.0f,  -2.0f,   1.0f,  0.0f,  0.0f,   0.0f, 0.0f,  //Dole-Levo
                        
         //RIGHT            
-         2.0f,   1.0f,   2.0f,  -1.0f,  0.0f,  0.0f,
-         2.0f,   1.0f,  -2.0f,  -1.0f,  0.0f,  0.0f,
-         2.0f,  -1.0f,  -2.0f,  -1.0f,  0.0f,  0.0f,
-         2.0f,  -1.0f,  -2.0f,  -1.0f,  0.0f,  0.0f,
-         2.0f,  -1.0f,   2.0f,  -1.0f,  0.0f,  0.0f,
-         2.0f,   1.0f,   2.0f,  -1.0f,  0.0f,  0.0f,
+         2.0f,   1.0f,   2.0f,  -1.0f,  0.0f,  0.0f,   1.0f, 1.0f,  //Gore-Desno
+         2.0f,   1.0f,  -2.0f,  -1.0f,  0.0f,  0.0f,   0.0f, 1.0f,  //Gore-Levo
+         2.0f,  -1.0f,  -2.0f,  -1.0f,  0.0f,  0.0f,   0.0f, 0.0f,  //Dole-Levo
+         2.0f,  -1.0f,  -2.0f,  -1.0f,  0.0f,  0.0f,   0.0f, 0.0f,  //Dole-Levo
+         2.0f,  -1.0f,   2.0f,  -1.0f,  0.0f,  0.0f,   1.0f, 0.0f,  //Dole-Desno
+         2.0f,   1.0f,   2.0f,  -1.0f,  0.0f,  0.0f,   1.0f, 1.0f,  //Gore-Desno
                        
         //BOTTOM       
-        -2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,
-        -2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
-         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
-         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,
-         2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,
-        -2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,
+        -2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,   0.0f, 1.0f,  //Gore-Levo
+        -2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,   0.0f, 0.0f,  //Dole-Levo
+         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,   1.0f, 0.0f,  //Dole-Desno
+         2.0f,  -1.0f,   2.0f,   0.0f,  1.0f,  0.0f,   1.0f, 0.0f,  //Dole-Desno
+         2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,   1.0f, 1.0f,  //Gore-Desno
+        -2.0f,  -1.0f,  -2.0f,   0.0f,  1.0f,  0.0f,   0.0f, 1.0f,  //Gore-Levo
                                     
         //TOP                       
-        -2.0f,   1.0f,  -2.0f,   0.0f, -1.0f,  0.0f,
-         2.0f,   1.0f,  -2.0f,   0.0f, -1.0f,  0.0f,
-         2.0f,   1.0f,   2.0f,   0.0f, -1.0f,  0.0f,
-         2.0f,   1.0f,   2.0f,   0.0f, -1.0f,  0.0f,
-        -2.0f,   1.0f,   2.0f,   0.0f, -1.0f,  0.0f,
-        -2.0f,   1.0f,  -2.0f,   0.0f, -1.0f,  0.0f
+        -2.0f,   1.0f,  -2.0f,   0.0f, -1.0f,  0.0f,   0.0f, 1.0f,  //Gore-Levo
+         2.0f,   1.0f,  -2.0f,   0.0f, -1.0f,  0.0f,   1.0f, 1.0f,  //Gore-Desno
+         2.0f,   1.0f,   2.0f,   0.0f, -1.0f,  0.0f,   1.0f, 0.0f,  //Dole-Desno
+         2.0f,   1.0f,   2.0f,   0.0f, -1.0f,  0.0f,   1.0f, 0.0f,  //Dole-Desno
+        -2.0f,   1.0f,   2.0f,   0.0f, -1.0f,  0.0f,   0.0f, 0.0f,  //Dole-Levo
+        -2.0f,   1.0f,  -2.0f,   0.0f, -1.0f,  0.0f,   0.0f, 1.0f   //Gore-Levo
     };
 
-    unsigned int roomStride = (3 + 3) * sizeof(float);
+    unsigned int roomStride = (3 + 3 + 2) * sizeof(float);
 
     //Podesavanje
     glBindVertexArray(VAO[0]);
@@ -175,6 +176,10 @@ int main(void)
     // Atributi za normale
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, roomStride, (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Atributi za teksture
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, roomStride, (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
 
     // ------------------------------- SLIKE SA OKVIRIMA NA PREDNJEM ZIDU -------------------------------
@@ -363,11 +368,11 @@ int main(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof(buttonVertices), buttonVertices, GL_STATIC_DRAW);
 
     // Atributi za tacke
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, roomStride, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, buttonStride, (void*)0);
     glEnableVertexAttribArray(0);
 
     // Atributi za normale
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, roomStride, (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, buttonStride, (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     // ------------------------------- PROGRESS BAR -------------------------------
@@ -395,9 +400,9 @@ int main(void)
 
     float signatureVertices[] = {
         // X        Y       S    T
-           0.45f,  -0.6f,   0.0, 1.0,  // Gore-Levo
-           0.45f,  -0.9f,   0.0, 0.0,  // Dole-Levo
-           0.9f,   -0.6f,   1.0, 1.0,  // Gore-Desno
+           0.5f,   -0.7f,   0.0, 1.0,  // Gore-Levo
+           0.5f,   -0.9f,   0.0, 0.0,  // Dole-Levo
+           0.9f,   -0.7f,   1.0, 1.0,  // Gore-Desno
            0.9f,   -0.9f,   1.0, 0.0   // Dole-Desno
     };
 
@@ -422,16 +427,16 @@ int main(void)
     // ------------------------------- DUGME ZA LAMPU -------------------------------
 
     float lampButtonVertices[] = {
-        //  X       Y       Z      NX     NY     NZ
-           -1.99f, -0.5f,  -1.0f,  0.0f,  1.0f,  0.0f,  // Dole-Desno
-           -1.99f, -0.3f,  -1.0f,  0.0f,  1.0f,  0.0f,  // Gore-Desno
-           -1.99f, -0.3f,  -0.9f,  0.0f,  1.0f,  0.0f,  // Gore-Levo
-           -1.99f, -0.3f,  -0.9f,  0.0f,  1.0f,  0.0f,  // Gore-Levo
-           -1.99f, -0.5f,  -0.9f,  0.0f,  1.0f,  0.0f,  // Dole-Levo
-           -1.99f, -0.5f,  -1.0f,  0.0f,  1.0f,  0.0f   // Dole-Desno
+        //  X       Y       Z      NX     NY     NZ     S      T
+           -1.99f, -0.5f,  -1.2f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  // Dole-Desno
+           -1.99f, -0.3f,  -1.2f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  // Gore-Desno
+           -1.99f, -0.3f,  -0.7f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  // Gore-Levo
+           -1.99f, -0.3f,  -0.7f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  // Gore-Levo
+           -1.99f, -0.5f,  -0.7f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  // Dole-Levo
+           -1.99f, -0.5f,  -1.2f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f   // Dole-Desno
     };
 
-    float lampButtonStride = (3 + 3) * sizeof(float);
+    float lampButtonStride = (3 + 3 + 2) * sizeof(float);
 
     glBindVertexArray(VAO[6]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[6]);
@@ -444,6 +449,10 @@ int main(void)
     // Atributi za normale
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, lampButtonStride, (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Atributi za teksture
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, lampButtonStride, (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // CISCENJE
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -500,10 +509,32 @@ int main(void)
 
     // POTPIS
     unsigned signatureTexture;
+
     signatureTexture = loadImageToTexture("res/other/Signature.png");
     glBindTexture(GL_TEXTURE_2D, signatureTexture);
     glGenerateMipmap(GL_TEXTURE_2D);
 
+    // DUGMAD ZA PODNU LAMPU
+    unsigned floorPointLightButtonTexture[2];
+
+    floorPointLightButtonTexture[0] = loadImageToTexture("res/other/on_toggle.png");
+    glBindTexture(GL_TEXTURE_2D, floorPointLightButtonTexture[0]);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    floorPointLightButtonTexture[1] = loadImageToTexture("res/other/off_toggle.png");
+    glBindTexture(GL_TEXTURE_2D, floorPointLightButtonTexture[1]);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // SOBA
+    unsigned roomTexture[2];
+
+    roomTexture[0] = loadImageToTexture("res/room/marble.png");
+    glBindTexture(GL_TEXTURE_2D, roomTexture[0]);
+    glGenerateMipmap(GL_TEXTURE_2D);    
+    
+    roomTexture[1] = loadImageToTexture("res/room/turquoise_rubber.png");
+    glBindTexture(GL_TEXTURE_2D, roomTexture[1]);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     // CISCENJE
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -514,9 +545,12 @@ int main(void)
     float ceilingSpotLightIntensity = 0.3f;
     float floorPointLightIntensity = 0.3f;
     float cameraSpotLightIntensity = 0.3f;
-    setupLight(lightingShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
-    setupLight(lightingShader, LightPosition::FLOOR, floorPointLightIntensity, true);
-    setupLight(lightingShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+    setupLight(lightingMaterialShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
+    setupLight(lightingMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+    setupLight(lightingMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+    setupLight(lightingTextureShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
+    setupLight(lightingTextureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+    setupLight(lightingTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
     setupLight(wallPictureShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
     setupLight(wallPictureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
     setupLight(wallPictureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
@@ -525,6 +559,7 @@ int main(void)
     bool stopButtonOn = false;
     bool cameraSpotLightOn = true;
     bool floorPointLightOn = true;
+    bool useGouraud = false;
     // Progress bar
     float progressStep = 0.01f;
     float progressValue = 0.0f;
@@ -534,8 +569,8 @@ int main(void)
     float maxRotationSpeed = 10.0f;
     
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
-    glEnable(GL_CULL_FACE);  
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     while (!glfwWindowShouldClose(window))
@@ -547,56 +582,61 @@ int main(void)
         lastFrame = currentFrame;
 
         processCommonInput(window);
-        processSceneInput(window);
-        processStopButtonInput(window, stopButtonOn);   
+        processSceneInput(window, useGouraud);
+        processStopButtonInput(window, stopButtonOn);
         processProgressBarInput(window, progressValue, progressStep);
         processCameraSpotLightInput(window, cameraSpotLightOn);
         processLampPointLightInput(window, floorPointLightOn);
+
+        if (useGouraud) {
+            lightingMaterialShader.use();
+            lightingMaterialShader.setBool("uUseGouraud", true);
+            lightingTextureShader.setBool("uUseGouraud", true);
+        }
 
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-
-        //Priprema ligthing shadera za crtanje sobe
+        //Priprema ligthing material
         if (cameraSpotLightOn) {
-            setupLight(lightingShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+            setupLight(lightingMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
         }
         else {
-            setupLight(lightingShader, LightPosition::CAMERA, cameraSpotLightIntensity, false);
+            setupLight(lightingMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, false);
         }
         if (floorPointLightOn) {
-            setupLight(lightingShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+            setupLight(lightingMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, true);
         }
         else {
-            setupLight(lightingShader, LightPosition::FLOOR, floorPointLightIntensity, false);
+            setupLight(lightingMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, false);
         }
-        lightingShader.use();
-        lightingShader.setMat4("uM", model);
-        lightingShader.setMat4("uP", projection);
-        lightingShader.setMat4("uV", view);
-        if (stopButtonOn) {
-            lightingShader.setFloat("uMaterial.shininess", 0.6 * 128); // Dark Stone
-            lightingShader.setVec3("uMaterial.diffuse", 0.3, 0.3, 0.3);
-            lightingShader.setVec3("uMaterial.specular", 0.5, 0.5, 0.5);
-        }
-        else
-        {
-            lightingShader.setFloat("uMaterial.shininess", 0.6 * 128); // Marble
-            lightingShader.setVec3("uMaterial.diffuse", 0.8f, 0.8f, 0.8f);
-            lightingShader.setVec3("uMaterial.specular", 0.1f, 0.1f, 0.1f);
-        }
+        lightingMaterialShader.use();
+        lightingMaterialShader.setMat4("uM", model);
+        lightingMaterialShader.setMat4("uP", projection);
+        lightingMaterialShader.setMat4("uV", view);
         glUseProgram(0);
 
-        //Crtanje sobe
-        lightingShader.use();
-        glBindVertexArray(VAO[0]);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        //Priprema ligthing texture shadera
+        if (cameraSpotLightOn) {
+            setupLight(lightingTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+        }
+        else {
+            setupLight(lightingTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, false);
+        }
+        if (floorPointLightOn) {
+            setupLight(lightingTextureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+        }
+        else {
+            setupLight(lightingTextureShader, LightPosition::FLOOR, floorPointLightIntensity, false);
+        }
+        lightingTextureShader.use();
+        lightingTextureShader.setMat4("uM", model);
+        lightingTextureShader.setMat4("uP", projection);
+        lightingTextureShader.setMat4("uV", view);
         glUseProgram(0);
 
-        //Priprema wall_picture shadera za crtanje slika prednjeg zida
-        float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressValue;
-        float angle = fmod(currentFrame * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
+        //Priprema wall_picture shadera
         setupLight(wallPictureShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
         if (cameraSpotLightOn) {
             setupLight(wallPictureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
@@ -616,6 +656,25 @@ int main(void)
         wallPictureShader.setMat4("uV", view);
         wallPictureShader.setFloat("uTime", currentFrame);;
         glUseProgram(0);
+
+
+
+        //Crtanje sobe
+        lightingTextureShader.use();
+        lightingTextureShader.setInt("uMaterial.diffuse", 0);
+        lightingTextureShader.setInt("uMaterial.specular", 0);
+        lightingTextureShader.setFloat("uMaterial.shininess", 64.0f);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, roomTexture[0]);
+        glBindVertexArray(VAO[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 24);
+        glBindTexture(GL_TEXTURE_2D, roomTexture[1]);
+        glDrawArrays(GL_TRIANGLES, 24, 36);
+        glUseProgram(0);
+
+        //Priprema za crtanje slika prednjeg zida
+        float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressValue;
+        float angle = fmod(currentFrame * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
 
         //Crtanje slika prednjeg zida sa okvirima
         wallPictureShader.use();
@@ -641,24 +700,25 @@ int main(void)
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, backWallPicturesTextures[i]);
             wallPictureShader.setInt("uTex", i);
-            wallPictureShader.setVec2("uCircularPosition", 0 ,0);
+            wallPictureShader.setVec2("uCircularPosition", 0, 0);
             glBindVertexArray(VAO[2]);
             glDrawArrays(GL_TRIANGLES, i * 6, 6);
         }
         glUseProgram(0);
 
-        //Crtanje dugmeta
-        lightingShader.use();
+
+        //Crtanje dugmeta za zaustavljanje slika
+        lightingMaterialShader.use();
         if (stopButtonOn) {
-            lightingShader.setFloat("uMaterial.shininess", 1.0f);
-            lightingShader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
-            lightingShader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
+            lightingMaterialShader.setFloat("uMaterial.shininess", 1.0f);
+            lightingMaterialShader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
+            lightingMaterialShader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
         }
-        else 
+        else
         {
-            lightingShader.setFloat("uMaterial.shininess", 1.0f);
-            lightingShader.setVec3("uMaterial.diffuse", 1.0f, 1.0f, 0.2f);
-            lightingShader.setVec3("uMaterial.specular", 0.3f, 0.3f, 0.1f);
+            lightingMaterialShader.setFloat("uMaterial.shininess", 1.0f);
+            lightingMaterialShader.setVec3("uMaterial.diffuse", 1.0f, 1.0f, 0.2f);
+            lightingMaterialShader.setVec3("uMaterial.specular", 0.3f, 0.3f, 0.1f);
         }
         glBindVertexArray(VAO[3]);
         glDrawArrays(GL_TRIANGLE_FAN, 0, CRES + 2);
@@ -675,26 +735,26 @@ int main(void)
         glUseProgram(0);
 
         //Crtanje dugmeta za lampu
-        lightingShader.use();
+        lightingTextureShader.use();
+        glActiveTexture(GL_TEXTURE0);
         if (floorPointLightOn) {
-            lightingShader.setFloat("uMaterial.shininess", 1.0f);
-            lightingShader.setVec3("uMaterial.diffuse", 0.0f, 1.0f, 0.0f);
-            lightingShader.setVec3("uMaterial.specular", 0.0f, 1.0f, 0.0f);
+            glBindTexture(GL_TEXTURE_2D, floorPointLightButtonTexture[0]);
         }
-        else
-        {
-            lightingShader.setFloat("uMaterial.shininess", 1.0f);
-            lightingShader.setVec3("uMaterial.diffuse", 1.0f, 0.0f, 0.0f);
-            lightingShader.setVec3("uMaterial.specular", 1.0f, 0.0f, 0.0f);
+        else {
+            glBindTexture(GL_TEXTURE_2D, floorPointLightButtonTexture[1]);
         }
+        lightingTextureShader.setInt("uMaterial.diffuse", 0);
+        lightingTextureShader.setInt("uMaterial.specular", 0);
+        lightingTextureShader.setFloat("uMaterial.shininess", 32.0f);
         glBindVertexArray(VAO[6]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        glUseProgram(0);
 
         //Crtanje lampe
-        lightingShader.use();
-        glm::mat4 lampModelMatrix = glm::translate(model, glm::vec3(-1.85f, -1.0f, 0.0f)) * glm::scale(model, glm::vec3(0.005f));
-        lightingShader.setMat4("uM", lampModelMatrix);
-        lamp.Draw(lightingShader);
+        lightingMaterialShader.use();
+        glm::mat4 lampModelMatrix = glm::translate(model, glm::vec3(-1.8f, -1.0f, 0.0f)) * glm::scale(model, glm::vec3(0.005f));
+        lightingMaterialShader.setMat4("uM", lampModelMatrix);
+        lamp.Draw(lightingMaterialShader);
         glUseProgram(0);
 
         //Crtanje potpisa
@@ -773,18 +833,21 @@ void processCommonInput(GLFWwindow* window)
         camera.ProcessKeyboard(DOWN, deltaTime);
 }
 
-void processSceneInput(GLFWwindow* window) {
+void processSceneInput(GLFWwindow* window, bool& useGouraud) {
     if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        useGouraud = false;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        useGouraud = true;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        useGouraud = false;
     }
 }
 
@@ -863,7 +926,7 @@ void setupLight(Shader& shader, LightPosition lightPosition, float lightIntensit
         }
     }
     else if (lightPosition == LightPosition::FLOOR) {
-        shader.setVec3("uFloorPointLight.position", glm::vec3(-1.85f, -1.0f, 0.0f));
+        shader.setVec3("uFloorPointLight.position", glm::vec3(-1.8f, -0.85f, 0.0f));
         shader.setFloat("uFloorPointLight.constant", 1.0f);
         shader.setFloat("uFloorPointLight.linear", 0.09f);
         shader.setFloat("uFloorPointLight.quadratic", 0.032f);
