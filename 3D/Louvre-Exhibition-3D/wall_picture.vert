@@ -1,13 +1,16 @@
 #version 330 core 
 
 layout(location = 0) in vec3 inPos;
-layout(location = 1) in vec2 inTexCoords;
-layout(location = 2) in float inWidth;
-layout(location = 3) in vec4 inColor;
+layout(location = 1) in vec3 inNor;
+layout(location = 2) in vec2 inTexCoords;
+layout(location = 3) in float inWidth;
+layout(location = 4) in vec4 inColor;
 
 out vec2 chTexCoords;
 out float chFrameWidth;
 out vec4 chFrameColor;
+out vec3 chFragPos;
+out vec3 chNor;
 
 uniform vec2 uCircularPosition; // pozicija za rotaciju
 uniform mat4 uM;
@@ -21,4 +24,6 @@ void main()
     chTexCoords = inTexCoords;
     chFrameWidth = inWidth;
     chFrameColor = inColor;
+    chFragPos = vec3(uM * vec4(inPos, 1.0));
+	chNor = mat3(transpose(inverse(uM))) * inNor;
 }

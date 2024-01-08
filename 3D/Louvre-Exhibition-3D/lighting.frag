@@ -27,10 +27,10 @@ struct SpotLight {
     vec3 specular;
 }; 
 
-struct Material{ //Materijal objekta
+struct Material{
 	vec3 diffuse;
 	vec3 specular;
-	float shininess; //Uglancanost
+	float shininess;
 };
 
 in vec3 chNor;
@@ -39,10 +39,10 @@ in vec3 chFragPos;
 out vec4 outCol;
 
 uniform SpotLight uCameraSpotLight;
-uniform SpotLight uWallSpotLight;
+uniform SpotLight uCeilingSpotLight;
 uniform PointLight uFloorPointLight;
 uniform Material uMaterial;
-uniform vec3 uViewPos;	//Pozicija kamere (za racun spekularne komponente)
+uniform vec3 uViewPos;
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
@@ -52,7 +52,7 @@ void main()
     vec3 normal = normalize(chNor);
     vec3 viewDir = normalize(uViewPos - chFragPos);
 
-    vec3 result = CalcSpotLight(uWallSpotLight, normal, chFragPos, viewDir);
+    vec3 result = CalcSpotLight(uCeilingSpotLight, normal, chFragPos, viewDir);
     result += CalcSpotLight(uCameraSpotLight, normal, chFragPos, viewDir);
     result += CalcPointLight(uFloorPointLight, normal, chFragPos, viewDir);
 

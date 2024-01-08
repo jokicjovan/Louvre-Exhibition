@@ -1,13 +1,49 @@
 #version 330 core
 
-in vec2 chTexCoords;    // koordinate teksture
-in float chFrameWidth; // sirina okvira
-in vec4 chFrameColor;  // boja okvira
+struct PointLight {    
+    vec3 position;
+    
+    float constant;
+    float linear;
+    float quadratic;  
 
-uniform float uTime;  // promenljiva za vreme
-uniform sampler2D uTex; // promenljiva teksturna jedinica
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};  
 
-out vec4 outCol;     // izlazna boja
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    float cutOff;
+    float outerCutOff;
+  
+    float constant;
+    float linear;
+    float quadratic;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+}; 
+
+in vec2 chTexCoords;
+in float chFrameWidth;
+in vec4 chFrameColor;
+in vec3 chNor;
+in vec3 chFragPos;
+
+uniform float uTime;
+uniform sampler2D uTex;
+uniform vec3 uViewPos;
+uniform SpotLight uCameraSpotLight;
+uniform SpotLight uCeilingSpotLight;
+uniform PointLight uFloorPointLight;
+
+out vec4 outCol;
+
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 texture);
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 texture);
 
 void main()
 {
@@ -22,5 +58,73 @@ void main()
     vec4 oscillatingColor = vec4(red, green, blue, 1.0);                // sjedinjavanje boja 
 
     vec4 picture = texture(uTex, chTexCoords);
-    outCol = mix(chFrameColor + oscillatingColor, picture, borderCondition);             // ako je 1.0 postavlja na providnu crnu, inace boji zadatom bojom
+    vec4 pictureWithFrame = mix(chFrameColor + oscillatingColor, picture, borderCondition);     // ako je 1.0 postavlja na teksturu, inace boji zadatom bojom
+
+    vec3 normal = normalize(chNor);
+    vec3 viewDir = normalize(uViewPos - chFragPos);
+    vec3 result = CalcSpotLight(uCeilingSpotLight, normal, chFragPos, viewDir, vec3(pictureWithFrame));
+    result += CalcPointLight(uFloorPointLight, normal, chFragPos, viewDir, vec3(pictureWithFrame));
+    result += CalcSpotLight(uCameraSpotLight, normal, chFragPos, viewDir, vec3(pictureWithFrame));
+    if(result.x == 0.0f && result.y == 0.0f && result.y == 0.0f){
+        discard;
+    }
+    else{
+        outCol = vec4(result, 1.0);
+    }
 }
+
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 texture)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1.0f);
+
+    // attenuation
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));  
+    
+    // combine results
+    vec3 ambient = light.ambient * texture;
+    vec3 diffuse = light.diffuse * diff * texture;
+    vec3 specular = light.specular * spec * texture;
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
+    return (ambient + diffuse + specular);
+} 
+
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 texture)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1.0f);
+
+    // attenuation
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));  
+    
+    // spotlight intensity
+    float theta = dot(lightDir, normalize(-light.direction)); 
+    float epsilon = light.cutOff - light.outerCutOff;
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+
+    // combine results
+    vec3 ambient = light.ambient * texture;
+    vec3 diffuse = light.diffuse * diff * texture;
+    vec3 specular = light.specular * spec * texture;
+
+    ambient *= attenuation * intensity;
+    diffuse *= attenuation * intensity;
+    specular *= attenuation * intensity;
+    return (ambient + diffuse + specular);
+}  
