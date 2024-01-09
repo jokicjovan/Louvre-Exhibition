@@ -1,0 +1,17 @@
+# Aspose.3D Wavefront OBJ Exporter
+# Copyright 2004-2023 Aspose Pty Ltd.
+# File created: 01/08/2024 22:46:30
+
+newmtl FloorLight
+	Ka 0.2 0.2 0.2
+	Kd 0.8 0.8 0.8
+	Ke 0 0 0
+	illum 2
+	Ks 0.2 0.2 0.2
+	Ns 20
+	d 1
+	Tr 0
+	map_Kd Lantern_albedo.jpg
+	map_Ks Lantern_metallic.jpg
+	map_Ke Lantern_emissive.jpg
+	norm Lantern_normal.jpg

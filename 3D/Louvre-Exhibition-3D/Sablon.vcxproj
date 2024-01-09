@@ -142,27 +142,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="lighting_texture.frag" />
-    <None Include="lighting_texture.vert" />
-    <None Include="wall_picture.frag" />
-    <None Include="wall_picture.vert" />
-    <None Include="lighting_material.frag" />
-    <None Include="lighting_material.vert" />
     <None Include="packages.config" />
-    <None Include="progress.frag" />
-    <None Include="progress.vert" />
-    <None Include="signature.frag" />
-    <None Include="signature.vert" />
+    <None Include="shaders\lighting_material.frag" />
+    <None Include="shaders\lighting_material.vert" />
+    <None Include="shaders\lighting_texture.frag" />
+    <None Include="shaders\lighting_texture.vert" />
+    <None Include="shaders\signature.frag" />
+    <None Include="shaders\signature.vert" />
+    <None Include="shaders\wall_picture.frag" />
+    <None Include="shaders\wall_picture.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="model.h" />
-    <ClInclude Include="shader.h" />
-    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="headers\camera.h" />
+    <ClInclude Include="headers\mesh.h" />
+    <ClInclude Include="headers\model.h" />
+    <ClInclude Include="headers\shader.h" />
+    <ClInclude Include="headers\stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

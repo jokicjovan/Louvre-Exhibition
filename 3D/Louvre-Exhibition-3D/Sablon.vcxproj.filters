@@ -13,63 +13,57 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Shader Files">
+    <Filter Include="Shader Files">
       <UniqueIdentifier>{a8b5ff39-85c7-4196-b461-819f918ebb58}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <None Include="packages.config" />
+    <None Include="shaders\lighting_texture.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\lighting_texture.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\signature.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\signature.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\wall_picture.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\wall_picture.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\lighting_material.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\lighting_material.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="headers\shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="wall_picture.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="wall_picture.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="progress.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="progress.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="signature.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="signature.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="lighting_material.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="lighting_material.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="lighting_texture.vert">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-    <None Include="lighting_texture.frag">
-      <Filter>Source Files\Shader Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
