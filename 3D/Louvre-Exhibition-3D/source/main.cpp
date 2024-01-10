@@ -101,7 +101,7 @@ int main(void)
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROMJENLJIVE I BAFERI +++++++++++++++++++++++++++++++++++++++++++++++++
     Shader phongMaterialShader("shaders/phong_material.vert", "shaders/phong_material.frag");
     Shader phongTextureShader("shaders/phong_texture.vert", "shaders/phong_texture.frag");
-    Shader wallPictureShader("shaders/wall_picture.vert", "shaders/wall_picture.frag");
+    Shader phongPictureShader("shaders/phong_picture.vert", "shaders/phong_picture.frag");
     Shader signatureShader("shaders/signature.vert", "shaders/signature.frag");
 
     unsigned int VAO[7];
@@ -607,7 +607,7 @@ int main(void)
     // Postavljanje svetala
     setupSceneLights(phongMaterialShader, cameraSpotLightOn, floorPointLightOn);
     setupSceneLights(phongTextureShader, cameraSpotLightOn, floorPointLightOn);
-    setupSceneLights(wallPictureShader, cameraSpotLightOn, floorPointLightOn);
+    setupSceneLights(phongPictureShader, cameraSpotLightOn, floorPointLightOn);
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -642,11 +642,11 @@ int main(void)
         setupMVP(phongTextureShader, model, view, projection);
 
         //Priprema wall_picture shadera
-        setupSceneLights(wallPictureShader, cameraSpotLightOn, floorPointLightOn);
-        setupMVP(wallPictureShader, model, view, projection);
+        setupSceneLights(phongPictureShader, cameraSpotLightOn, floorPointLightOn);
+        setupMVP(phongPictureShader, model, view, projection);
 
-        wallPictureShader.use();
-        wallPictureShader.setFloat("uTime", currentFrame);;
+        phongPictureShader.use();
+        phongPictureShader.setFloat("uTime", currentFrame);;
         glUseProgram(0);
 
 
@@ -657,11 +657,11 @@ int main(void)
         //Crtanje slika prednjeg zida sa okvirima
         float currentRotationSpeed = baseRotationSpeed + (maxRotationSpeed - baseRotationSpeed) * progressBarValue;
         float angle = fmod(currentFrame * currentRotationSpeed, 2.0f * 3.14159265358979323846f);
-        drawFrontWallPictures(VAO[1], wallPictureShader, frontWallPicturesTextures, stopButtonOn, angle, rotationRadius);
+        drawFrontWallPictures(VAO[1], phongPictureShader, frontWallPicturesTextures, stopButtonOn, angle, rotationRadius);
 
 
         //Crtanje slika zadnjeg zida sa okvirima
-        drawBackWallPictures(VAO[2], wallPictureShader, backWallPicturesTextures);
+        drawBackWallPictures(VAO[2], phongPictureShader, backWallPicturesTextures);
 
 
         //Crtanje dugmeta za zaustavljanje slika

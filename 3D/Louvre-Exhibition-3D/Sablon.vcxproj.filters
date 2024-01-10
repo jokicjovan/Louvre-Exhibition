@@ -31,10 +31,10 @@
     <None Include="shaders\signature.vert">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\wall_picture.frag">
+    <None Include="shaders\phong_picture.frag">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\wall_picture.vert">
+    <None Include="shaders\phong_picture.vert">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\phong_material.frag">

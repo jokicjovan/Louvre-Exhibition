@@ -149,8 +149,8 @@
     <None Include="shaders\phong_texture.vert" />
     <None Include="shaders\signature.frag" />
     <None Include="shaders\signature.vert" />
-    <None Include="shaders\wall_picture.frag" />
-    <None Include="shaders\wall_picture.vert" />
+    <None Include="shaders\phong_picture.frag" />
+    <None Include="shaders\phong_picture.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\camera.h" />
