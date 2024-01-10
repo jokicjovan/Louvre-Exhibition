@@ -19,10 +19,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="shaders\lighting_texture.frag">
+    <None Include="shaders\phong_texture.frag">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\lighting_texture.vert">
+    <None Include="shaders\phong_texture.vert">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="shaders\signature.frag">
@@ -37,10 +37,10 @@
     <None Include="shaders\wall_picture.vert">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\lighting_material.frag">
+    <None Include="shaders\phong_material.frag">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="shaders\lighting_material.vert">
+    <None Include="shaders\phong_material.vert">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

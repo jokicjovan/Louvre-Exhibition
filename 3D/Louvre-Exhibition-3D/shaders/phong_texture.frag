@@ -3,6 +3,7 @@
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
+    sampler2D emissive;
     float shininess;
 }; 
 
@@ -60,6 +61,7 @@ void main()
     vec3 result = CalcSpotLight(uCeilingSpotLight, normal, chFragPos, viewDir);
     result += CalcSpotLight(uCameraSpotLight, normal, chFragPos, viewDir);
     result += CalcPointLight(uFloorPointLight, normal, chFragPos, viewDir);
+    //result += vec3(texture(uMaterial.emissive, chTexCoords));
 
     outCol = vec4(result, 1.0);
 }
@@ -118,4 +120,4 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
     return (ambient + diffuse + specular);
-}  
+}

@@ -148,6 +148,9 @@ private:
         // 2. specular maps
         vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "uSpecMap");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        // 3. emmisive maps
+        vector<Texture> emmisiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "uEmisMap");
+        textures.insert(textures.end(), emmisiveMaps.begin(), emmisiveMaps.end());
 
         // return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures);

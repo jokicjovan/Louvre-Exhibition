@@ -87,8 +87,8 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROMJENLJIVE I BAFERI +++++++++++++++++++++++++++++++++++++++++++++++++
-    Shader lightingMaterialShader("shaders/lighting_material.vert", "shaders/lighting_material.frag");
-    Shader lightingTextureShader("shaders/lighting_texture.vert", "shaders/lighting_texture.frag");
+    Shader phongMaterialShader("shaders/phong_material.vert", "shaders/phong_material.frag");
+    Shader phongTextureShader("shaders/phong_texture.vert", "shaders/phong_texture.frag");
     Shader wallPictureShader("shaders/wall_picture.vert", "shaders/wall_picture.frag");
     Shader signatureShader("shaders/signature.vert", "shaders/signature.frag");
 
@@ -582,12 +582,12 @@ int main(void)
     float ceilingSpotLightIntensity = 0.3f;
     float floorPointLightIntensity = 0.3f;
     float cameraSpotLightIntensity = 0.3f;
-    setupLight(lightingMaterialShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
-    setupLight(lightingMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, true);
-    setupLight(lightingMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
-    setupLight(lightingTextureShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
-    setupLight(lightingTextureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
-    setupLight(lightingTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+    setupLight(phongMaterialShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
+    setupLight(phongMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+    setupLight(phongMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+    setupLight(phongTextureShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
+    setupLight(phongTextureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+    setupLight(phongTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
     setupLight(wallPictureShader, LightPosition::CEILING, ceilingSpotLightIntensity, true);
     setupLight(wallPictureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
     setupLight(wallPictureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
@@ -625,60 +625,46 @@ int main(void)
         processCameraSpotLightInput(window, cameraSpotLightOn);
         processLampPointLightInput(window, floorPointLightOn);
 
-        if (useGouraud) {
-            lightingMaterialShader.use();
-            lightingMaterialShader.setBool("uUseGouraud", true);
-            lightingTextureShader.use();
-            lightingTextureShader.setBool("uUseGouraud", true);
-        }
-        else {
-            lightingMaterialShader.use();
-            lightingMaterialShader.setBool("uUseGouraud", false);
-            lightingTextureShader.use();
-            lightingTextureShader.setBool("uUseGouraud", false);
-        }
-        glUseProgram(0);
-
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-        //Priprema ligthing material
+        //Priprema phong material
         if (cameraSpotLightOn) {
-            setupLight(lightingMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+            setupLight(phongMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
         }
         else {
-            setupLight(lightingMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, false);
+            setupLight(phongMaterialShader, LightPosition::CAMERA, cameraSpotLightIntensity, false);
         }
         if (floorPointLightOn) {
-            setupLight(lightingMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+            setupLight(phongMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, true);
         }
         else {
-            setupLight(lightingMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, false);
+            setupLight(phongMaterialShader, LightPosition::FLOOR, floorPointLightIntensity, false);
         }
-        lightingMaterialShader.use();
-        lightingMaterialShader.setMat4("uM", model);
-        lightingMaterialShader.setMat4("uP", projection);
-        lightingMaterialShader.setMat4("uV", view);
+        phongMaterialShader.use();
+        phongMaterialShader.setMat4("uM", model);
+        phongMaterialShader.setMat4("uP", projection);
+        phongMaterialShader.setMat4("uV", view);
         glUseProgram(0);
 
-        //Priprema ligthing texture shadera
+        //Priprema phong texture shadera
         if (cameraSpotLightOn) {
-            setupLight(lightingTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
+            setupLight(phongTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, true);
         }
         else {
-            setupLight(lightingTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, false);
+            setupLight(phongTextureShader, LightPosition::CAMERA, cameraSpotLightIntensity, false);
         }
         if (floorPointLightOn) {
-            setupLight(lightingTextureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
+            setupLight(phongTextureShader, LightPosition::FLOOR, floorPointLightIntensity, true);
         }
         else {
-            setupLight(lightingTextureShader, LightPosition::FLOOR, floorPointLightIntensity, false);
+            setupLight(phongTextureShader, LightPosition::FLOOR, floorPointLightIntensity, false);
         }
-        lightingTextureShader.use();
-        lightingTextureShader.setMat4("uM", model);
-        lightingTextureShader.setMat4("uP", projection);
-        lightingTextureShader.setMat4("uV", view);
+        phongTextureShader.use();
+        phongTextureShader.setMat4("uM", model);
+        phongTextureShader.setMat4("uP", projection);
+        phongTextureShader.setMat4("uV", view);
         glUseProgram(0);
 
         //Priprema wall_picture shadera
@@ -705,10 +691,10 @@ int main(void)
 
 
         //Crtanje sobe
-        lightingTextureShader.use();
-        lightingTextureShader.setInt("uMaterial.diffuse", 0);
-        lightingTextureShader.setInt("uMaterial.specular", 0);
-        lightingTextureShader.setFloat("uMaterial.shininess", 64.0f);
+        phongTextureShader.use();
+        phongTextureShader.setInt("uMaterial.diffuse", 0);
+        phongTextureShader.setInt("uMaterial.specular", 0);
+        phongTextureShader.setFloat("uMaterial.shininess", 64.0f);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, roomTexture[0]);
         glBindVertexArray(VAO[0]);
@@ -717,7 +703,7 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, roomTexture[1]);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, roomTexture[2]);
-        lightingTextureShader.setInt("uMaterial.specular", 1);
+        phongTextureShader.setInt("uMaterial.specular", 1);
         glDrawArrays(GL_TRIANGLES, 24, 36);
         glUseProgram(0);
 
@@ -757,41 +743,41 @@ int main(void)
 
 
         //Crtanje dugmeta za zaustavljanje slika
-        lightingMaterialShader.use();
+        phongMaterialShader.use();
         if (stopButtonOn) {
-            lightingMaterialShader.setFloat("uMaterial.shininess", 1.0f);
-            lightingMaterialShader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
-            lightingMaterialShader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
+            phongMaterialShader.setFloat("uMaterial.shininess", 1.0f);
+            phongMaterialShader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
+            phongMaterialShader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
         }
         else
         {
-            lightingMaterialShader.setFloat("uMaterial.shininess", 1.0f);
-            lightingMaterialShader.setVec3("uMaterial.diffuse", 1.0f, 1.0f, 0.2f);
-            lightingMaterialShader.setVec3("uMaterial.specular", 0.3f, 0.3f, 0.1f);
+            phongMaterialShader.setFloat("uMaterial.shininess", 1.0f);
+            phongMaterialShader.setVec3("uMaterial.diffuse", 1.0f, 1.0f, 0.2f);
+            phongMaterialShader.setVec3("uMaterial.specular", 0.3f, 0.3f, 0.1f);
         }
         glBindVertexArray(VAO[3]);
         glDrawArrays(GL_TRIANGLE_FAN, 0, CRES + 2);
         glUseProgram(0);
 
         //Crtanje progress bar-a
-        lightingMaterialShader.use();
-        lightingMaterialShader.setMat4("uM", model);
-        lightingMaterialShader.setMat4("uP", projection);
-        lightingMaterialShader.setMat4("uV", view);
-        lightingMaterialShader.setFloat("uMaterial.shininess", 1.0f);
-        lightingMaterialShader.setVec3("uMaterial.diffuse", 1.0f, 0.0f, 0.0f);
-        lightingMaterialShader.setVec3("uMaterial.specular", 0.5f, 0.0f, 0.0f);
+        phongMaterialShader.use();
+        phongMaterialShader.setMat4("uM", model);
+        phongMaterialShader.setMat4("uP", projection);
+        phongMaterialShader.setMat4("uV", view);
+        phongMaterialShader.setFloat("uMaterial.shininess", 1.0f);
+        phongMaterialShader.setVec3("uMaterial.diffuse", 1.0f, 0.0f, 0.0f);
+        phongMaterialShader.setVec3("uMaterial.specular", 0.5f, 0.0f, 0.0f);
         glBindVertexArray(VAO[4]);
         glDrawArrays(GL_TRIANGLES, 0, progressBarValue * progressBarQuadsNum * 2 * 3);
-        lightingMaterialShader.setFloat("uMaterial.shininess", 1.0f);
-        lightingMaterialShader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
-        lightingMaterialShader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
+        phongMaterialShader.setFloat("uMaterial.shininess", 1.0f);
+        phongMaterialShader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
+        phongMaterialShader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
         glBindVertexArray(VAO[4]);
         glDrawArrays(GL_TRIANGLES, progressBarValue * progressBarQuadsNum * 2 * 3, progressBarQuadsNum * 2 * 3);
         glUseProgram(0);
 
         //Crtanje dugmeta za lampu
-        lightingTextureShader.use();
+        phongTextureShader.use();
         glActiveTexture(GL_TEXTURE0);
         if (floorPointLightOn) {
             glBindTexture(GL_TEXTURE_2D, floorPointLightButtonTexture[0]);
@@ -799,28 +785,28 @@ int main(void)
         else {
             glBindTexture(GL_TEXTURE_2D, floorPointLightButtonTexture[1]);
         }
-        lightingTextureShader.setInt("uMaterial.diffuse", 0);
-        lightingTextureShader.setInt("uMaterial.specular", 0);
-        lightingTextureShader.setFloat("uMaterial.shininess", 32.0f);
+        phongTextureShader.setInt("uMaterial.diffuse", 0);
+        phongTextureShader.setInt("uMaterial.specular", 0);
+        phongTextureShader.setFloat("uMaterial.shininess", 32.0f);
         glBindVertexArray(VAO[6]);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glUseProgram(0);
 
-        //Crtanje podnog svetla
-        lightingTextureShader.use();
+        //Crtanje modela podnog svetla
+        phongTextureShader.use();
         glm::mat4 floorLightModelMatrix = glm::translate(model, glm::vec3(-1.8f, -1.0f, 0.0f));
         floorLightModelMatrix = glm::scale(floorLightModelMatrix, glm::vec3(0.005f));
-        lightingTextureShader.setMat4("uM", floorLightModelMatrix);
-        floorLightModel.Draw(lightingTextureShader);
+        phongTextureShader.setMat4("uM", floorLightModelMatrix);
+        floorLightModel.Draw(phongTextureShader);
         glUseProgram(0); 
         
-        //Crtanje svetla na plafonu
-        lightingTextureShader.use();
+        //Crtanje modela svetla na plafonu
+        phongTextureShader.use();
         glm::mat4 ceilingLightModelMatrix = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
         ceilingLightModelMatrix = glm::rotate(ceilingLightModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         ceilingLightModelMatrix = glm::scale(ceilingLightModelMatrix, glm::vec3(0.01f));
-        lightingTextureShader.setMat4("uM", ceilingLightModelMatrix);
-        ceilingLightModel.Draw(lightingTextureShader);
+        phongTextureShader.setMat4("uM", ceilingLightModelMatrix);
+        ceilingLightModel.Draw(phongTextureShader);
         glUseProgram(0);
 
         //Crtanje potpisa

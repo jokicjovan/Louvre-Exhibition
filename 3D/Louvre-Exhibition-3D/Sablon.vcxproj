@@ -143,10 +143,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="shaders\lighting_material.frag" />
-    <None Include="shaders\lighting_material.vert" />
-    <None Include="shaders\lighting_texture.frag" />
-    <None Include="shaders\lighting_texture.vert" />
+    <None Include="shaders\phong_material.frag" />
+    <None Include="shaders\phong_material.vert" />
+    <None Include="shaders\phong_texture.frag" />
+    <None Include="shaders\phong_texture.vert" />
     <None Include="shaders\signature.frag" />
     <None Include="shaders\signature.vert" />
     <None Include="shaders\wall_picture.frag" />

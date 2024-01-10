@@ -9,7 +9,6 @@ out vec3 chNor;
 uniform mat4 uM;
 uniform mat4 uV;
 uniform mat4 uP;
-uniform bool useGouraud;
 
 void main()
 {
