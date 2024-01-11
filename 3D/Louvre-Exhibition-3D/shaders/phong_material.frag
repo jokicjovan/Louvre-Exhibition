@@ -28,6 +28,7 @@ struct SpotLight {
 }; 
 
 struct Material{
+	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
 	float shininess;
@@ -75,7 +76,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));  
     
     // combine results
-    vec3 ambient = light.ambient * uMaterial.diffuse;
+    vec3 ambient = light.ambient * uMaterial.ambient;
     vec3 diffuse = light.diffuse * diff * uMaterial.diffuse;
     vec3 specular = light.specular * spec * uMaterial.specular;
     ambient *= attenuation;
@@ -105,7 +106,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
     // combine results
-    vec3 ambient = light.ambient * uMaterial.diffuse;
+    vec3 ambient = light.ambient * uMaterial.ambient;
     vec3 diffuse = light.diffuse * diff * uMaterial.diffuse;
     vec3 specular = light.specular * spec * uMaterial.specular;
 

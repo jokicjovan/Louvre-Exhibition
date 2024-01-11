@@ -967,15 +967,17 @@ void drawBackWallPictures(int VAO, Shader shader, unsigned backWallPicturesTextu
 void drawStoppingButton(int VAO, Shader shader, bool stopButtonOn) {
     shader.use();
     if (stopButtonOn) {
-        shader.setFloat("uMaterial.shininess", 1.0f);
-        shader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
-        shader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
+        shader.setFloat("uMaterial.shininess", 0.25 * 128.0f);
+        shader.setVec3("uMaterial.ambient", 0.0f, 0.0f, 0.0f);
+        shader.setVec3("uMaterial.diffuse", 0.01f, 0.01f, 0.01);
+        shader.setVec3("uMaterial.specular", 0.50f, 0.50f, 0.50f);
     }
     else
     {
-        shader.setFloat("uMaterial.shininess", 1.0f);
-        shader.setVec3("uMaterial.diffuse", 1.0f, 1.0f, 0.2f);
-        shader.setVec3("uMaterial.specular", 0.3f, 0.3f, 0.1f);
+        shader.setFloat("uMaterial.shininess", 0.4 * 128.0f);
+        shader.setVec3("uMaterial.ambient", 0.24725f, 0.1995f, 0.0745f);
+        shader.setVec3("uMaterial.diffuse", 0.75164f, 0.60648f, 0.22648f);
+        shader.setVec3("uMaterial.specular", 0.628281f, 0.555802f, 0.366065f);
     }
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLE_FAN, 0, CRES + 2);
@@ -985,14 +987,16 @@ void drawStoppingButton(int VAO, Shader shader, bool stopButtonOn) {
 
 void drawProgressBar(int VAO, Shader shader, float progressBarValue, int progressBarQuadsNum) {
     shader.use();
-    shader.setFloat("uMaterial.shininess", 1.0f);
-    shader.setVec3("uMaterial.diffuse", 1.0f, 0.0f, 0.0f);
-    shader.setVec3("uMaterial.specular", 0.5f, 0.0f, 0.0f);
+    shader.setFloat("uMaterial.shininess", 0.6 * 128.0f);
+    shader.setVec3("uMaterial.diffuse", 0.1745, 0.01175, 0.01175);
+    shader.setVec3("uMaterial.diffuse", 0.61424f, 0.04136f, 0.04136f);
+    shader.setVec3("uMaterial.specular", 0.727811f, 0.626959f, 0.626959f);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, progressBarValue * progressBarQuadsNum * 2 * 3);
-    shader.setFloat("uMaterial.shininess", 1.0f);
-    shader.setVec3("uMaterial.diffuse", 0.0f, 0.0f, 0.0f);
-    shader.setVec3("uMaterial.specular", 0.0f, 0.0f, 0.0f);
+    shader.setFloat("uMaterial.shininess", 0.25 * 128.0f);
+    shader.setVec3("uMaterial.ambient", 0.0f, 0.0f, 0.0f);
+    shader.setVec3("uMaterial.diffuse", 0.01f, 0.01f, 0.01);
+    shader.setVec3("uMaterial.specular", 0.50f, 0.50f, 0.50f);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, progressBarValue * progressBarQuadsNum * 2 * 3, progressBarQuadsNum * 2 * 3);
     glUseProgram(0);
