@@ -102,6 +102,7 @@ int main(void)
     Shader phongMaterialShader("shaders/phong_material.vert", "shaders/phong_material.frag");
     Shader phongTextureShader("shaders/phong_texture.vert", "shaders/phong_texture.frag");
     Shader phongPictureShader("shaders/phong_picture.vert", "shaders/phong_picture.frag");
+    Shader gouraudMaterialShader("shaders/gouraud_material.vert", "shaders/gouraud_material.frag");
     Shader signatureShader("shaders/signature.vert", "shaders/signature.frag");
 
     unsigned int VAO[7];
@@ -608,6 +609,7 @@ int main(void)
     setupSceneLights(phongMaterialShader, cameraSpotLightOn, floorPointLightOn);
     setupSceneLights(phongTextureShader, cameraSpotLightOn, floorPointLightOn);
     setupSceneLights(phongPictureShader, cameraSpotLightOn, floorPointLightOn);
+    setupSceneLights(gouraudMaterialShader, cameraSpotLightOn, floorPointLightOn);
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -641,9 +643,13 @@ int main(void)
         setupSceneLights(phongTextureShader, cameraSpotLightOn, floorPointLightOn);
         setupMVP(phongTextureShader, model, view, projection);
 
-        //Priprema wall_picture shadera
+        //Priprema phong picture shadera
         setupSceneLights(phongPictureShader, cameraSpotLightOn, floorPointLightOn);
-        setupMVP(phongPictureShader, model, view, projection);
+        setupMVP(phongPictureShader, model, view, projection);        
+        
+        //Priprema gouraud material shadera
+        setupSceneLights(gouraudMaterialShader, cameraSpotLightOn, floorPointLightOn);
+        setupMVP(gouraudMaterialShader, model, view, projection);
 
         phongPictureShader.use();
         phongPictureShader.setFloat("uTime", currentFrame);;
@@ -665,11 +671,10 @@ int main(void)
 
 
         //Crtanje dugmeta za zaustavljanje slika
-        drawStoppingButton(VAO[3], phongMaterialShader, stopButtonOn);
-
+        drawStoppingButton(VAO[3], useGouraud ? gouraudMaterialShader : phongMaterialShader, stopButtonOn);
 
         //Crtanje progress bar-a
-        drawProgressBar(VAO[4], phongMaterialShader, progressBarValue, progressBarQuadsNum);
+        drawProgressBar(VAO[4], useGouraud ? gouraudMaterialShader : phongMaterialShader, progressBarValue, progressBarQuadsNum);
 
 
         //Crtanje dugmeta za podno svetlo

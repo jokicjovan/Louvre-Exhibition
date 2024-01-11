@@ -143,6 +143,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="shaders\gouraud_material.frag" />
+    <None Include="shaders\gouraud_material.vert" />
     <None Include="shaders\phong_material.frag" />
     <None Include="shaders\phong_material.vert" />
     <None Include="shaders\phong_texture.frag" />

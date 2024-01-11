@@ -43,6 +43,12 @@
     <None Include="shaders\phong_material.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\gouraud_material.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\gouraud_material.vert">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\shader.h">
